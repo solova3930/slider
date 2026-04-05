@@ -5,16 +5,591 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:slider"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Background="gray">
-    <Grid>
-        <Button Content="Открыть слайдер"
-            Width="145"
-            Height="35"
-            HorizontalAlignment="Left"
-            
-            VerticalAlignment="Top"
-            Click="OpenSlider_Click" Margin="10,10,10,10" Panel.ZIndex="0" BorderThickness="0,0,0,0" FontFamily="Calibri" FontSize="12" UseLayoutRounding="False">
+        Title="Конфигуратор слайдера"
+        Height="820"
+        Width="1380"
+        MinHeight="760"
+        MinWidth="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#1c1c1c">
 
-        </Button>
-    </Grid>
+    <Window.Resources>
+        
+        <SolidColorBrush x:Key="WindowBrush" Color="#3c3c3c"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#3c3c3c"/>
+        <SolidColorBrush x:Key="CardBrushAlt" Color="#2c2c2c"/>
+        <SolidColorBrush x:Key="BorderBrushDark" Color="#3c3c3c"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#4c4c4c"/>
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#5c5c5c"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#374151"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#6c6c6c"/>
+        <SolidColorBrush x:Key="InputBrush" Color="#1c1c1c"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#22C55E"/>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                        CornerRadius="8"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="#4A5568"/>
+            <Setter Property="BorderBrush" Value="#4A5568"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="#FF800000"/>
+            <Setter Property="BorderBrush" Value="#FF800000"/>
+        </Style>
+
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        <Style x:Key="DotsButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="InputComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                        <Setter Property="Background" Value="#1c1c1c"/>
+                        <Setter Property="Padding" Value="8,4"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#1E3A5F"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="8"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#1D4ED8"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="RowBackground" Value="{StaticResource InputBrush}"/>
+            <Setter Property="AlternatingRowBackground" Value="#0c0c0c"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#1c1c1c"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel LastChildFill="True">
+
+        <!-- Верхняя панель -->
+        <Border DockPanel.Dock="Top"
+                Background="#1c1c1c"
+                BorderBrush="{StaticResource BorderBrushDark}"
+                BorderThickness="0,0,0,1"
+                Padding="18,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Конфигуратор слайдера"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="Периоды показа, расписание, изображения, эффекты переходов и автосохранение"
+                               FontSize="13"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="OpenLastPlaylistButton"
+                            Content="Открыть последний"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="OpenLastPlaylistButton_Click"/>
+
+                    <Button x:Name="LoadPlaylistButton"
+                            Content="Загрузить плейлист"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="LoadPlaylistButton_Click"/>
+
+                    <Button x:Name="SavePlaylistButton"
+                            Content="Сохранить плейлист"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="SavePlaylistButton_Click"/>
+
+                    <Button x:Name="OpenSliderButton"
+                            Content="Запустить слайдер"
+                            Width="165"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="OpenSliderButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Основная область -->
+        <Grid Margin="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="330"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="350"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Левая панель -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+
+                    <!-- Список периодов -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Периоды показа"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+                            <ListBox x:Name="DaysListBox"
+                                                Grid.Row="1"
+                                                 Height="240"
+                                                 SelectionChanged="DaysListBox_SelectionChanged"
+                                                 Background="{StaticResource InputBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1">       
+
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{Binding Name}"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                                            <Button Grid.Column="1"
+                                                    Content="⋯"
+                                                    Style="{StaticResource DotsButtonStyle}"
+                                                    Click="PeriodMenuButton_Click">             
+
+                                                <Button.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Изменить"
+                                      Click="EditPeriod_Click"/>
+                                                        <MenuItem Header="Удалить"
+                                      Click="DeletePeriod_Click"/>
+                                                    </ContextMenu>
+                                                </Button.ContextMenu>
+
+                                            </Button>
+
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+
+                            </ListBox>
+
+
+                            <StackPanel Grid.Row="2" Margin="0,12,0,0">
+                                <Button x:Name="AddDayGroupButton"
+                                        Content="Добавить период"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Click="AddDayGroupButton_Click"/>
+
+                                <TextBlock Text="Каждый период имеет начало и конец. В активный момент показываются только его картинки."
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Редактор периода -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Настройки периода"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock Text="Имя периода"
+                                       Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="PeriodNameTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Text="Новый период"/>
+
+                            <TextBlock Text="Начало периода (дд.ММ.гггг ЧЧ:мм)"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,12,0,6"/>
+                            <TextBox x:Name="PeriodStartTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Text="01.01.2026 00:00"/>
+
+                            <TextBlock Text="Конец периода (дд.ММ.гггг ЧЧ:мм)"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,12,0,6"/>
+                            <TextBox x:Name="PeriodEndTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Text="02.01.2026 00:00"/>
+
+                            <Button x:Name="ApplyPeriodSettingsButton"
+                                    Content="Применить настройки периода"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Margin="0,14,0,0"
+                                    Click="ApplyPeriodSettingsButton_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Центральная панель -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="180"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Кнопки управления -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Изображения выбранного периода"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+                            <TextBlock Text="Добавляй фото кнопкой или перетаскивай их в зону ниже."
+                                       FontSize="13"
+                                       Foreground="{StaticResource MutedTextBrush}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                            <Button x:Name="AddImagesButton"
+                                    Content="+ Добавить фото"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="AddImagesButton_Click"/>
+
+                            <Button x:Name="RemoveSelectedImageButton"
+                                    Content="Удалить выбранное"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    Click="RemoveSelectedImageButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Drag & Drop -->
+                <Border Grid.Row="1"
+                        Background="{StaticResource CardBrushAlt}"
+                        BorderBrush="{StaticResource BorderBrushDark}"
+                        BorderThickness="2"
+                        CornerRadius="14"
+                        AllowDrop="True"
+                        DragEnter="DropZone_DragEnter"
+                        DragOver="DropZone_DragOver"
+                        Drop="DropZone_Drop">
+                    <Grid>
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="Перетащи фото сюда"
+                                       FontSize="24"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource TextBrush}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Поддерживаются JPG, JPEG, PNG, BMP"
+                                       FontSize="14"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Margin="0,8,0,0"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Таблица картинок -->
+                <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Список изображений"
+                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                        <DataGrid x:Name="ImagesDataGrid"
+                                  Grid.Row="1"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  SelectionMode="Single"
+                                  BorderBrush="{StaticResource BorderBrushDark}"
+                                  BorderThickness="1"
+                                  SelectionChanged="ImagesDataGrid_SelectionChanged"
+                                  MouseDoubleClick="ImagesDataGrid_MouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Имя файла"
+                                                    Binding="{Binding FileName}"
+                                                    Width="220"/>
+
+                                <DataGridTextColumn Header="Полный путь"
+                                                    Binding="{Binding ImagePath}"
+                                                    Width="*"/>
+
+                                <DataGridTextColumn Header="Длительность (сек)"
+                                                    Binding="{Binding DurationSeconds}"
+                                                    Width="140"/>
+
+                                <DataGridTextColumn Header="Эффект"
+                                                    Binding="{Binding TransitionEffect}"
+                                                    Width="140"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Правая панель -->
+            <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+
+                    <!-- Настройки изображения -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Настройки выбранного изображения"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock Text="Путь к файлу" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="SelectedImagePathTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     IsReadOnly="True"/>
+
+                            <TextBlock Text="Длительность показа (секунды)"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,12,0,6"/>
+                            <TextBox x:Name="DurationTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Text="5"/>
+
+                            <TextBlock Text="Эффект перелистывания"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,12,0,6"/>
+                            <ComboBox x:Name="TransitionEffectComboBox"
+                                      Style="{StaticResource InputComboBoxStyle}"
+                                      SelectedIndex="0">
+                                <ComboBoxItem Content="Затухание"/>
+                                <ComboBoxItem Content="Перелистывание"/>
+                            </ComboBox>
+
+                            <Button x:Name="ApplyImageSettingsButton"
+                                    Content="Применить настройки изображения"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Margin="0,14,0,0"
+                                    Click="ApplyImageSettingsButton_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Плейлист -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Плейлист"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock Text="Имя плейлиста" Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="PlaylistNameTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Text="Новый плейлист"/>
+
+                            <TextBlock Text="Путь сохранения"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,12,0,6"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="PlaylistPathTextBox"
+                                         Grid.Column="0"
+                                         Style="{StaticResource InputTextBoxStyle}"
+                                         IsReadOnly="True"/>
+
+                                <Button x:Name="ChoosePlaylistPathButton"
+                                        Grid.Column="2"
+                                        Content="Выбрать путь"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Margin="0"
+                                        Click="ChoosePlaylistPathButton_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Автосохранение -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Автосохранение"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                            <CheckBox x:Name="AutoSaveCheckBox"
+                                      Content="Включить автосохранение"
+                                      FontSize="14"
+                                      FontWeight="SemiBold"
+                                      Checked="AutoSaveCheckBox_Checked"
+                                      Unchecked="AutoSaveCheckBox_Unchecked"/>
+
+                            <TextBlock Text="Период автосохранения (минуты)"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,12,0,6"/>
+                            <TextBox x:Name="AutoSaveMinutesTextBox"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Text="5"/>
+
+                            <Button x:Name="ApplyAutoSaveButton"
+                                    Content="Применить автосохранение"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Margin="0,14,0,0"
+                                    Click="ApplyAutoSaveButton_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Служебная информация -->
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Служебная информация"
+                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock x:Name="CurrentDayInfoTextBlock"
+                                       Text="Период: не выбран"
+                                       FontSize="14"
+                                       Foreground="{StaticResource TextBrush}"
+                                       Margin="0,0,0,8"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock x:Name="StatusTextBlock"
+                                       Text="Статус: готово"
+                                       FontSize="14"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
 </Window>
