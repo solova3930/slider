@@ -1,14 +1,16 @@
 ﻿using Microsoft.Win32;
-using slider.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Windows.Input;
-using slider.Services;
 using System.IO;
+using slider.Services;
+using slider.Models;
+
 
 namespace slider
 {
@@ -16,19 +18,27 @@ namespace slider
     {
         private List<PlaylistPeriod> periods = new List<PlaylistPeriod>();
         private PlaylistPeriod? selectedPeriod = null;
-
+        private Point _dragStartPoint;
+        private SlideItem? _draggedSlideItem;
+        private DispatcherTimer? autoSaveDelayTimer;
+        private bool isLoadingPlaylist = false;
+        private string playlistFilePath = "";
+        private DateTime lastFileWriteTime = DateTime.MinValue;
         public MainWindow()
         {
             InitializeComponent();
+            InitializeAutoSaveDelayTimer();
             InitializeDefaultPeriods();
             RefreshPeriodsList();
             RefreshImagesGrid();
             UpdateStatus();
+
         }
 
         // =========================
         // ИНИЦИАЛИЗАЦИЯ
         // =========================
+
         private string currentPlaylistFilePath = "";
         private readonly string lastPlaylistInfoFile =
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "last_playlist.txt");
@@ -41,7 +51,6 @@ namespace slider
 
             return new PlaylistData
             {
-                PlaylistName = PlaylistNameTextBox.Text.Trim(),
                 PlaylistPath = PlaylistPathTextBox.Text.Trim(),
                 AutoSaveEnabled = AutoSaveCheckBox.IsChecked == true,
                 AutoSaveMinutes = autoSaveMinutes,
@@ -49,29 +58,391 @@ namespace slider
             };
         }
 
-        private void ApplyPlaylistData(PlaylistData data)
+        private void InitializeAutoSaveDelayTimer()
         {
-            periods = data.Periods ?? new List<PlaylistPeriod>();
+            autoSaveDelayTimer = new DispatcherTimer();
+            autoSaveDelayTimer.Interval = TimeSpan.FromSeconds(2);
+            autoSaveDelayTimer.Tick += AutoSaveDelayTimer_Tick;
+        }
 
-            if (periods.Count == 0)
+        private void AutoSaveDelayTimer_Tick(object? sender, EventArgs e)
+        {
+            if (autoSaveDelayTimer != null)
+                autoSaveDelayTimer.Stop();
+
+            PerformAutoSave();
+        }
+
+        private void PeriodNameTextBlock_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount != 2)
+                return;
+
+            if ((sender as FrameworkElement)?.DataContext is not PlaylistPeriod period)
+                return;
+
+            var container = FindParent<Grid>(sender as DependencyObject);
+            if (container == null)
+                return;
+
+            var textBlock = container.FindName("PeriodNameTextBlock") as TextBlock;
+            var textBox = container.FindName("PeriodNameEditTextBox") as TextBox;
+
+            if (textBlock != null)
+                textBlock.Visibility = Visibility.Collapsed;
+
+            if (textBox != null)
             {
-                InitializeDefaultPeriods();
-            }
-            else
-            {
-                selectedPeriod = periods.FirstOrDefault();
+                textBox.Visibility = Visibility.Visible;
+                textBox.Focus();
+                textBox.SelectAll();
             }
 
-            PlaylistNameTextBox.Text = data.PlaylistName ?? "Новый плейлист";
-            PlaylistPathTextBox.Text = data.PlaylistPath ?? "";
-            AutoSaveCheckBox.IsChecked = data.AutoSaveEnabled;
-            AutoSaveMinutesTextBox.Text = data.AutoSaveMinutes.ToString();
+            e.Handled = true;
+        }
+
+        private void PeriodNameEditTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is not TextBox textBox)
+                return;
+
+            if (e.Key == Key.Enter)
+            {
+                CommitPeriodNameEdit(textBox);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                CancelPeriodNameEdit(textBox);
+                e.Handled = true;
+            }
+        }
+
+        private void PeriodNameEditTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                CommitPeriodNameEdit(textBox);
+            }
+        }
+
+        private void CommitPeriodNameEdit(TextBox textBox)
+        {
+            if ((textBox.DataContext as PlaylistPeriod) is not PlaylistPeriod period)
+                return;
+
+            string newName = textBox.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(newName))
+                newName = "Новый период";
+
+            period.Name = newName;
+
+            var container = FindParent<Grid>(textBox);
+            if (container != null)
+            {
+                var textBlock = container.FindName("PeriodNameTextBlock") as TextBlock;
+                var editBox = container.FindName("PeriodNameEditTextBox") as TextBox;
+
+                if (textBlock != null)
+                    textBlock.Visibility = Visibility.Visible;
+
+                if (editBox != null)
+                    editBox.Visibility = Visibility.Collapsed;
+            }
 
             RefreshPeriodsList();
             RefreshPeriodEditor();
+            UpdateStatus("Имя периода изменено");
+            ScheduleAutoSave();
+        }
+
+        private void CancelPeriodNameEdit(TextBox textBox)
+        {
+            if ((textBox.DataContext as PlaylistPeriod) is PlaylistPeriod period)
+            {
+                textBox.Text = period.Name;
+            }
+
+            var container = FindParent<Grid>(textBox);
+            if (container != null)
+            {
+                var textBlock = container.FindName("PeriodNameTextBlock") as TextBlock;
+                var editBox = container.FindName("PeriodNameEditTextBox") as TextBox;
+
+                if (textBlock != null)
+                    textBlock.Visibility = Visibility.Visible;
+
+                if (editBox != null)
+                    editBox.Visibility = Visibility.Collapsed;
+            }
+        }
+        private void ScheduleAutoSave()
+        {
+            if (isLoadingPlaylist)
+                return;
+
+            if (AutoSaveCheckBox == null || AutoSaveCheckBox.IsChecked != true)
+                return;
+
+            if (string.IsNullOrWhiteSpace(PlaylistPathTextBox.Text))
+                return;
+
+            if (autoSaveDelayTimer == null)
+                return;
+
+            autoSaveDelayTimer.Stop();
+            autoSaveDelayTimer.Start();
+        }
+
+        private void PerformAutoSave()
+        {
+            try
+            {
+                string filePath = PlaylistPathTextBox.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(filePath))
+                    return;
+
+                var data = BuildPlaylistData();
+                PlaylistFileService.Save(filePath, data);
+
+                currentPlaylistFilePath = filePath;
+                SaveLastPlaylistPath(filePath);
+
+                StatusTextBlock.Text = "Автосохранение выполнено";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка автосохранения:\n{ex.Message}");
+            }
+        }
+
+        private void ChangeTimeValue(TextBox textBox, int min, int max, int delta)
+        {
+            if (!int.TryParse(textBox.Text, out int value))
+                value = 0;
+
+            value += delta;
+
+            if (value > max) value = min;
+            if (value < min) value = max;
+
+            textBox.Text = value.ToString("00");
+        }
+
+        private void StartHourUp_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(StartHourTextBox, 0, 23, +1);
+        }
+
+        private void StartHourDown_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(StartHourTextBox, 0, 23, -1);
+        }
+
+        private void StartMinuteUp_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(StartMinuteTextBox, 0, 59, +1);
+        }
+
+        private void StartMinuteDown_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(StartMinuteTextBox, 0, 59, -1);
+        }
+
+        private void EndHourUp_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(EndHourTextBox, 0, 23, +1);
+        }
+
+        private void EndHourDown_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(EndHourTextBox, 0, 23, -1);
+        }
+
+        private void EndMinuteUp_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(EndMinuteTextBox, 0, 59, +1);
+        }
+
+        private void EndMinuteDown_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeTimeValue(EndMinuteTextBox, 0, 59, -1);
+        }
+
+        private void Hour_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                ChangeTimeValue(tb, 0, 23, e.Delta > 0 ? 1 : -1);
+            }
+        }
+
+        private void Minute_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                ChangeTimeValue(tb, 0, 59, e.Delta > 0 ? 1 : -1);
+            }
+        }
+
+        private void ApplyPlaylistData(PlaylistData data)
+        {
+            isLoadingPlaylist = true;
+
+            try
+            {
+                periods = data.Periods ?? new List<PlaylistPeriod>();
+
+                if (periods.Count == 0)
+                {
+                    InitializeDefaultPeriods();
+                }
+                else
+                {
+                    selectedPeriod = periods.FirstOrDefault();
+                }
+
+                PlaylistPathTextBox.Text = data.PlaylistPath ?? "";
+                AutoSaveCheckBox.IsChecked = data.AutoSaveEnabled;
+                AutoSaveMinutesTextBox.Text = data.AutoSaveMinutes.ToString();
+
+                RefreshPeriodsList();
+                RefreshPeriodEditor();
+                RefreshImagesGrid();
+                ClearSelectedImageEditor();
+                UpdateStatus("Плейлист загружен");
+            }
+            finally
+            {
+                isLoadingPlaylist = false;
+            }
+            RefreshPlaylistHeader();
+        }
+
+
+        private void ImagesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+
+            if (sender is DataGrid dataGrid)
+            {
+                var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
+                if (row?.Item is SlideItem slideItem)
+                {
+                    _draggedSlideItem = slideItem;
+                }
+                else
+                {
+                    _draggedSlideItem = null;
+                }
+            }
+        }
+
+        private void ImagesDataGrid_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed || _draggedSlideItem == null)
+                return;
+
+            Point currentPos = e.GetPosition(null);
+
+            if (Math.Abs(currentPos.X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(currentPos.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                DragDrop.DoDragDrop(ImagesDataGrid, _draggedSlideItem, DragDropEffects.Move);
+            }
+        }
+
+        private void ImagesDataGrid_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(typeof(SlideItem)))
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+                return;
+            }
+
+            e.Effects = DragDropEffects.Move;
+
+            if (_lastHighlightedRow != null)
+            {
+                _lastHighlightedRow.Background = System.Windows.Media.Brushes.Transparent;
+                _lastHighlightedRow = null;
+            }
+
+            var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
+            if (row != null)
+            {
+                row.Background = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#334155"));
+                _lastHighlightedRow = row;
+            }
+
+            e.Handled = true;
+        }
+
+        private DataGridRow? _lastHighlightedRow;
+
+        private static T? FindParent<T>(DependencyObject? child) where T : DependencyObject
+        {
+            while (child != null)
+            {
+                if (child is T parent)
+                    return parent;
+
+                child = System.Windows.Media.VisualTreeHelper.GetParent(child);
+            }
+
+            return null;
+        }
+
+        private void ImagesDataGrid_Drop(object sender, DragEventArgs e)
+        {
+            if (_lastHighlightedRow != null)
+            {
+                _lastHighlightedRow.ClearValue(DataGridRow.BackgroundProperty);
+                _lastHighlightedRow = null;
+            }
+
+            if (selectedPeriod == null)
+                return;
+
+            if (!e.Data.GetDataPresent(typeof(SlideItem)))
+                return;
+
+            var droppedData = e.Data.GetData(typeof(SlideItem)) as SlideItem;
+            if (droppedData == null)
+                return;
+
+            var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
+            var targetItem = row?.Item as SlideItem;
+
+            if (targetItem == null || ReferenceEquals(droppedData, targetItem))
+                return;
+
+            int oldIndex = selectedPeriod.Slides.IndexOf(droppedData);
+            int newIndex = selectedPeriod.Slides.IndexOf(targetItem);
+
+            if (oldIndex < 0 || newIndex < 0)
+                return;
+
+            selectedPeriod.Slides.RemoveAt(oldIndex);
+            selectedPeriod.Slides.Insert(newIndex, droppedData);
+
             RefreshImagesGrid();
-            ClearSelectedImageEditor();
-            UpdateStatus("Плейлист загружен");
+            ImagesDataGrid.SelectedItem = droppedData;
+            UpdateStatus("Порядок изображений изменён");
+            ScheduleAutoSave();
+        }
+
+        private void ImagesDataGrid_DragLeave(object sender, DragEventArgs e)
+        {
+            if (_lastHighlightedRow != null)
+            {
+                _lastHighlightedRow.ClearValue(DataGridRow.BackgroundProperty);
+                _lastHighlightedRow = null;
+            }
         }
 
         private void SaveLastPlaylistPath(string filePath)
@@ -122,6 +493,7 @@ namespace slider
                     ClearSelectedImageEditor();
 
                     UpdateStatus("Период удалён");
+                    ScheduleAutoSave();
                 }
             }
         }
@@ -142,25 +514,53 @@ namespace slider
                 return;
             }
 
-            if (!DateTime.TryParseExact(PeriodStartTextBox.Text, "dd.MM.yyyy HH:mm",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out DateTime start))
+            if (StartDatePicker.SelectedDate == null)
             {
-                MessageBox.Show("Неверная дата начала");
+                MessageBox.Show("Выбери дату начала");
                 return;
             }
 
-            if (!DateTime.TryParseExact(PeriodEndTextBox.Text, "dd.MM.yyyy HH:mm",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out DateTime end))
+            if (EndDatePicker.SelectedDate == null)
             {
-                MessageBox.Show("Неверная дата конца");
+                MessageBox.Show("Выбери дату конца");
                 return;
             }
+
+            if (!int.TryParse(StartHourTextBox.Text, out int startHour) || startHour < 0 || startHour > 23)
+            {
+                MessageBox.Show("Часы начала должны быть от 0 до 23");
+                return;
+            }
+
+            if (!int.TryParse(StartMinuteTextBox.Text, out int startMinute) || startMinute < 0 || startMinute > 59)
+            {
+                MessageBox.Show("Минуты начала должны быть от 0 до 59");
+                return;
+            }
+
+            if (!int.TryParse(EndHourTextBox.Text, out int endHour) || endHour < 0 || endHour > 23)
+            {
+                MessageBox.Show("Часы конца должны быть от 0 до 23");
+                return;
+            }
+
+            if (!int.TryParse(EndMinuteTextBox.Text, out int endMinute) || endMinute < 0 || endMinute > 59)
+            {
+                MessageBox.Show("Минуты конца должны быть от 0 до 59");
+                return;
+            }
+
+            DateTime start = StartDatePicker.SelectedDate.Value.Date
+                .AddHours(startHour)
+                .AddMinutes(startMinute);
+
+            DateTime end = EndDatePicker.SelectedDate.Value.Date
+                .AddHours(endHour)
+                .AddMinutes(endMinute);
 
             if (end <= start)
             {
-                MessageBox.Show("Дата окончания должна быть больше начала");
+                MessageBox.Show("Дата окончания должна быть больше даты начала");
                 return;
             }
 
@@ -172,8 +572,46 @@ namespace slider
             RefreshPeriodEditor();
 
             StatusTextBlock.Text = "Период обновлён";
+            ScheduleAutoSave();
         }
 
+        private void TimeTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !e.Text.All(char.IsDigit);
+        }
+
+        private void DeleteImageRowButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (selectedPeriod == null)
+                return;
+
+            if ((sender as FrameworkElement)?.DataContext is SlideItem selectedSlide)
+            {
+                selectedPeriod.Slides.Remove(selectedSlide);
+                RefreshImagesGrid();
+                ClearSelectedImageEditor();
+                UpdateStatus("Изображение удалено");
+                ScheduleAutoSave();
+            }
+        }
+
+        private void TimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is not TextBox textBox)
+                return;
+
+            string text = new string(textBox.Text.Where(char.IsDigit).ToArray());
+
+            if (text.Length > 2)
+                text = text.Substring(0, 2);
+
+            if (textBox.Text != text)
+            {
+                int caret = textBox.CaretIndex;
+                textBox.Text = text;
+                textBox.CaretIndex = Math.Min(caret, textBox.Text.Length);
+            }
+        }
 
         private void InitializeDefaultPeriods()
         {
@@ -197,17 +635,113 @@ namespace slider
 
         private void OpenLastPlaylistButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Открытие последнего плейлиста пока не реализовано");
+            try
+            {
+                string lastPath = GetLastPlaylistPath();
+
+                if (string.IsNullOrWhiteSpace(lastPath) || !File.Exists(lastPath))
+                {
+                    MessageBox.Show("Последний плейлист не найден.");
+                    return;
+                }
+
+                var data = PlaylistFileService.Load(lastPath);
+
+                currentPlaylistFilePath = lastPath;
+                PlaylistPathTextBox.Text = lastPath;
+
+                ApplyPlaylistData(data);
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка открытия последнего плейлиста:\n{ex.Message}");
+            }
         }
 
         private void LoadPlaylistButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Загрузка плейлиста пока не реализована");
+            OpenFileDialog dialog = new OpenFileDialog
+            {
+                Title = "Загрузить плейлист",
+                Filter = "JSON Playlist|*.json"
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            try
+            {
+                var data = PlaylistFileService.Load(dialog.FileName);
+
+                currentPlaylistFilePath = dialog.FileName;
+                PlaylistPathTextBox.Text = dialog.FileName;
+
+                ApplyPlaylistData(data);
+                SaveLastPlaylistPath(dialog.FileName);
+
+                MessageBox.Show("Плейлист успешно загружен.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки:\n{ex.Message}");
+            }
+        }
+
+        private void RefreshPlaylistHeader()
+        {
+            string name = "Новый плейлист";
+
+            if (PlaylistNameTextBox != null && !string.IsNullOrWhiteSpace(PlaylistNameTextBox.Text))
+                name = PlaylistNameTextBox.Text.Trim();
+
+            if (PlaylistHeaderTextBlock != null)
+                PlaylistHeaderTextBlock.Text = $"ПЛЕЙЛИСТ: {name.ToUpper()}";
         }
 
         private void SavePlaylistButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Сохранение плейлиста пока не реализовано");
+            string filePath = PlaylistPathTextBox.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                SaveFileDialog dialog = new SaveFileDialog
+                {
+                    Title = "Сохранить плейлист",
+                    Filter = "JSON Playlist|*.json",
+
+
+
+                };
+
+                if (dialog.ShowDialog() != true)
+                    return;
+
+                filePath = dialog.FileName;
+                PlaylistPathTextBox.Text = filePath;
+            }
+
+            try
+            {
+                var data = BuildPlaylistData();
+                PlaylistFileService.Save(filePath, data);
+
+                currentPlaylistFilePath = filePath;
+                SaveLastPlaylistPath(filePath);
+
+                UpdateStatus("Плейлист сохранён");
+                RefreshPlaylistHeader();
+                MessageBox.Show("Плейлист успешно сохранён.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка сохранения:\n{ex.Message}");
+            }
+        }
+
+        private void PlaylistNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RefreshPlaylistHeader();
         }
 
         private void OpenSliderButton_Click(object sender, RoutedEventArgs e)
@@ -225,8 +759,8 @@ namespace slider
                 MessageBox.Show("В активном периоде нет изображений");
                 return;
             }
-
-            SliderWindow slider = new SliderWindow(periods);
+        
+            SliderWindow slider = new SliderWindow(periods, PlaylistPathTextBox.Text);
             slider.Show();
         }
 
@@ -241,6 +775,7 @@ namespace slider
                 selectedPeriod = period;
                 RefreshPeriodEditor();
                 RefreshImagesGrid();
+                UpdateStatus();
                 UpdateStatus();
             }
         }
@@ -263,6 +798,7 @@ namespace slider
             RefreshPeriodEditor();
             RefreshImagesGrid();
             UpdateStatus("Добавлен новый период");
+            ScheduleAutoSave();
         }
 
         // =========================
@@ -302,6 +838,7 @@ namespace slider
 
                 RefreshImagesGrid();
                 UpdateStatus("Изображения добавлены");
+                ScheduleAutoSave();
             }
         }
 
@@ -316,8 +853,27 @@ namespace slider
                 RefreshImagesGrid();
                 ClearSelectedImageEditor();
                 UpdateStatus("Изображение удалено");
+                ScheduleAutoSave();
             }
         }
+
+        private void ImagesDataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
+        {
+            if (e.Row.Item is SlideItem slide)
+            {
+                if (slide.DurationSeconds <= 0)
+                    slide.DurationSeconds = 5;
+
+                UpdateStatus("Длительность обновлена");
+                ScheduleAutoSave();
+            }
+        }
+
+        private void DurationEditingTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !e.Text.All(char.IsDigit);
+        }
+
 
         private void ImagesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -341,7 +897,7 @@ namespace slider
         {
             if (ImagesDataGrid.SelectedItem is SlideItem selectedSlide)
             {
-                MessageBox.Show($"Выбрано изображение:\n{selectedSlide.FileName}");
+                
             }
         }
 
@@ -403,6 +959,7 @@ namespace slider
 
             RefreshImagesGrid();
             UpdateStatus("Изображения добавлены через Drag & Drop");
+            ScheduleAutoSave();
         }
 
         // =========================
@@ -433,6 +990,7 @@ namespace slider
             RefreshImagesGrid();
             ImagesDataGrid.SelectedItem = selectedSlide;
             UpdateStatus("Настройки изображения применены");
+            ScheduleAutoSave();
         }
 
         // =========================
@@ -441,7 +999,19 @@ namespace slider
 
         private void ChoosePlaylistPathButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Выбор пути для плейлиста сделаем позже");
+            SaveFileDialog dialog = new SaveFileDialog
+            {
+                Title = "Выберите путь для плейлиста",
+                Filter = "JSON Playlist|*.json",
+
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                PlaylistPathTextBox.Text = dialog.FileName;
+                currentPlaylistFilePath = dialog.FileName;
+                UpdateStatus("Путь плейлиста выбран");
+            }
         }
 
         // =========================
@@ -485,11 +1055,23 @@ namespace slider
                 if (PeriodNameTextBox != null)
                     PeriodNameTextBox.Text = "";
 
-                if (PeriodStartTextBox != null)
-                    PeriodStartTextBox.Text = "";
+                if (StartDatePicker != null)
+                    StartDatePicker.SelectedDate = null;
 
-                if (PeriodEndTextBox != null)
-                    PeriodEndTextBox.Text = "";
+                if (EndDatePicker != null)
+                    EndDatePicker.SelectedDate = null;
+
+                if (StartHourTextBox != null)
+                    StartHourTextBox.Text = "00";
+
+                if (StartMinuteTextBox != null)
+                    StartMinuteTextBox.Text = "00";
+
+                if (EndHourTextBox != null)
+                    EndHourTextBox.Text = "00";
+
+                if (EndMinuteTextBox != null)
+                    EndMinuteTextBox.Text = "00";
 
                 if (CurrentDayInfoTextBlock != null)
                     CurrentDayInfoTextBlock.Text = "Период: не выбран";
@@ -500,11 +1082,23 @@ namespace slider
             if (PeriodNameTextBox != null)
                 PeriodNameTextBox.Text = selectedPeriod.Name;
 
-            if (PeriodStartTextBox != null)
-                PeriodStartTextBox.Text = selectedPeriod.StartDateTime.ToString("dd.MM.yyyy HH:mm");
+            if (StartDatePicker != null)
+                StartDatePicker.SelectedDate = selectedPeriod.StartDateTime.Date;
 
-            if (PeriodEndTextBox != null)
-                PeriodEndTextBox.Text = selectedPeriod.EndDateTime.ToString("dd.MM.yyyy HH:mm");
+            if (EndDatePicker != null)
+                EndDatePicker.SelectedDate = selectedPeriod.EndDateTime.Date;
+
+            if (StartHourTextBox != null)
+                StartHourTextBox.Text = selectedPeriod.StartDateTime.Hour.ToString("00");
+
+            if (StartMinuteTextBox != null)
+                StartMinuteTextBox.Text = selectedPeriod.StartDateTime.Minute.ToString("00");
+
+            if (EndHourTextBox != null)
+                EndHourTextBox.Text = selectedPeriod.EndDateTime.Hour.ToString("00");
+
+            if (EndMinuteTextBox != null)
+                EndMinuteTextBox.Text = selectedPeriod.EndDateTime.Minute.ToString("00");
 
             if (CurrentDayInfoTextBlock != null)
             {
@@ -522,6 +1116,13 @@ namespace slider
             if (selectedPeriod != null)
             {
                 ImagesDataGrid.ItemsSource = selectedPeriod.Slides;
+                EmptyDropHintTextBlock.Visibility = selectedPeriod.Slides.Count == 0
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
+            else
+            {
+                EmptyDropHintTextBlock.Visibility = Visibility.Visible;
             }
         }
 

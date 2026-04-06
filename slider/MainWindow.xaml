@@ -6,15 +6,26 @@
         xmlns:local="clr-namespace:slider"
         mc:Ignorable="d"
         Title="Конфигуратор слайдера"
-        Height="820"
-        Width="1380"
+        Height="850"
+        Width="1400"
         MinHeight="760"
         MinWidth="1200"
         WindowStartupLocation="CenterScreen"
         Background="#1c1c1c">
 
     <Window.Resources>
-        
+        <SolidColorBrush x:Key="BtnPrimaryBrush" Color="#5A5A5A"/>
+        <SolidColorBrush x:Key="BtnPrimaryHoverBrush" Color="#6A6A6A"/>
+        <SolidColorBrush x:Key="BtnPrimaryPressedBrush" Color="#4A4A4A"/>
+
+        <SolidColorBrush x:Key="BtnSecondaryBrush" Color="#3F4652"/>
+        <SolidColorBrush x:Key="BtnSecondaryHoverBrush" Color="#4B5563"/>
+        <SolidColorBrush x:Key="BtnSecondaryPressedBrush" Color="#374151"/>
+
+        <SolidColorBrush x:Key="BtnDangerBrush" Color="#8B0000"/>
+        <SolidColorBrush x:Key="BtnDangerHoverBrush" Color="#A00000"/>
+        <SolidColorBrush x:Key="BtnDangerPressedBrush" Color="#700000"/>
+
         <SolidColorBrush x:Key="WindowBrush" Color="#3c3c3c"/>
         <SolidColorBrush x:Key="CardBrush" Color="#3c3c3c"/>
         <SolidColorBrush x:Key="CardBrushAlt" Color="#2c2c2c"/>
@@ -22,10 +33,336 @@
         <SolidColorBrush x:Key="PrimaryBrush" Color="#4c4c4c"/>
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#5c5c5c"/>
         <SolidColorBrush x:Key="SecondaryBrush" Color="#374151"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#FFCECECE"/>
         <SolidColorBrush x:Key="MutedTextBrush" Color="#6c6c6c"/>
         <SolidColorBrush x:Key="InputBrush" Color="#1c1c1c"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#22C55E"/>
+        <Style x:Key="DeleteRowButtonStyle" TargetType="Button">
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsMouseOver}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="AddPeriodButtonStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Height" Value="56"/>
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Light"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#5A5A5A"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="10"
+                        SnapsToDevicePixels="True">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="ShadowEffect"
+                                          BlurRadius="0"
+                                          ShadowDepth="0"
+                                          Opacity="0"
+                                          Color="#000000"/>
+                            </Border.Effect>
+
+                            <ContentPresenter x:Name="ContentHost"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      RenderTransformOrigin="0.5,0.5">
+                                <ContentPresenter.RenderTransform>
+                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#6A6A6A"
+                                                    Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                     To="1.12"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                     To="1.12"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0.35"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="BlurRadius"
+                                                     To="12"
+                                                     Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#5A5A5A"
+                                                    Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="BlurRadius"
+                                                     To="0"
+                                                     Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#4A4A4A"/>
+                                <Setter TargetName="ContentHost" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ApplyPeriodButtonStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#5A6478"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,14,0,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#68748B"
+                                                    Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#5A6478"
+                                                    Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#4D5668"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ApplyButtonStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#4C4C4C"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="12"
+                        SnapsToDevicePixels="True">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="ShadowEffect"
+                                          BlurRadius="0"
+                                          ShadowDepth="0"
+                                          Opacity="0"
+                                          Color="#000000"/>
+                            </Border.Effect>
+
+                            <ContentPresenter x:Name="ContentHost"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      RenderTransformOrigin="0.5,0.5">
+                                <ContentPresenter.RenderTransform>
+                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#5C5C5C"
+                                                    Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                     To="1.06"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                     To="1.06"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0.30"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="BlurRadius"
+                                                     To="10"
+                                                     Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#4C4C4C"
+                                                    Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ContentHost"
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0"
+                                                     Duration="0:0:0.18"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="ShadowEffect"
+                                                     Storyboard.TargetProperty="BlurRadius"
+                                                     To="0"
+                                                     Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#3F3F3F"/>
+                                <Setter TargetName="ContentHost" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -36,18 +373,98 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Background" Value="{StaticResource BtnPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                        CornerRadius="8"
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="10"
                         Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Root"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#6A6A6A"
+                                                Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                 To="1.02"
+                                                 Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                 To="1.02"
+                                                 Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Root"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#5A5A5A"
+                                                Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                 To="1"
+                                                 Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                 To="1"
+                                                 Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource BtnPrimaryPressedBrush}"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PeriodMenuDotsStyle" TargetType="Button">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="6">
                             <ContentPresenter HorizontalAlignment="Center"
                                       VerticalAlignment="Center"/>
                         </Border>
@@ -56,16 +473,207 @@
             </Setter>
         </Style>
 
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Background" Value="#4A5568"/>
-            <Setter Property="BorderBrush" Value="#4A5568"/>
+        <Style x:Key="SmallTimeTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Width" Value="54"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#2B2B2B"/>
+            <Setter Property="BorderBrush" Value="#5A5A5A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+
+        <Style x:Key="DarkDatePickerStyle" TargetType="DatePicker">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#2B2B2B"/>
+            <Setter Property="BorderBrush" Value="#5A5A5A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="4,0"/>
+        </Style>
+
+        <Style TargetType="DatePickerTextBox">
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#2B2B2B"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="2,0"/>
+        </Style>
+
+
+        <Style x:Key="PlaylistRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridRow">
+                        <Border Background="{TemplateBinding Background}">
+                            <Grid>
+                                <DataGridCellsPresenter/>
+                                <Border Background="#2A2A2A"
+                                Height="1"
+                                VerticalAlignment="Bottom"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style x:Key="SpinButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="MinWidth" Value="18"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#4A5568"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#5B6778"
+                                                    Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="Root"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#4A5568"
+                                                    Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#3F4958"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-            <Setter Property="Background" Value="#FF800000"/>
-            <Setter Property="BorderBrush" Value="#FF800000"/>
+            <Setter Property="Background" Value="{StaticResource BtnDangerBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Root"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#A00000"
+                                                Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                 To="1.02"
+                                                 Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                 To="1.02"
+                                                 Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Root"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#8B0000"
+                                                Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                 To="1"
+                                                 Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                 To="1"
+                                                 Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource BtnDangerPressedBrush}"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="CardBorderStyle" TargetType="Border">
@@ -114,13 +722,75 @@
         <Style x:Key="InputComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Height" Value="34"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="{StaticResource InputBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8,4"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <!-- ToggleButton рисует само "поле" и стрелочку -->
+                            <ToggleButton 
+                        Background="#FF1C1C1C"
+                        BorderBrush="#FF1C1C1C"
+                        Foreground="#FFA0C0CE"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                        ClickMode="Press">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border Background="{TemplateBinding Background}" 
+                                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                                    CornerRadius="2">
+                                                        <Grid HorizontalAlignment="Right" Width="20">
+                                                            <!-- Рисуем стрелочку -->
+                                                            <Path Data="M 0 0 L 4 4 L 8 0" 
+                                                          Stroke="{TemplateBinding Foreground}" 
+                                                          StrokeThickness="2" 
+                                                          VerticalAlignment="Center" 
+                                                          HorizontalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ToggleButton.Style>
+                            </ToggleButton>
 
+                            <!-- Отображение выбранного текста -->
+                            <ContentPresenter IsHitTestVisible="False" 
+                                      Content="{TemplateBinding SelectionBoxItem}"
+                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                      VerticalAlignment="Center" 
+                                      Margin="{TemplateBinding Padding}"/>
+
+                            <!-- Выпадающий список -->
+                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Border x:Name="DropDownBorder" 
+                                Background="#1c1c1c" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="1" 
+                                MinWidth="{TemplateBinding ActualWidth}">
+                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Setter Property="ItemContainerStyle">
                 <Setter.Value>
                     <Style TargetType="ComboBoxItem">
@@ -130,7 +800,7 @@
                         <Setter Property="HorizontalContentAlignment" Value="Left"/>
                         <Style.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="Background" Value="#FF656667"/>
                                 <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
@@ -173,10 +843,13 @@
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#1c1c1c"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
+            <Setter Property="Background" Value="#151515"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="BorderBrush" Value="#EAEAEA"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,6"/>
         </Style>
 
         <Style TargetType="CheckBox">
@@ -186,53 +859,7 @@
 
     <DockPanel LastChildFill="True">
 
-        <!-- Верхняя панель -->
-        <Border DockPanel.Dock="Top"
-                Background="#1c1c1c"
-                BorderBrush="{StaticResource BorderBrushDark}"
-                BorderThickness="0,0,0,1"
-                Padding="18,14">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
 
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Конфигуратор слайдера"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Foreground="{StaticResource TextBrush}"/>
-                    <TextBlock Text="Периоды показа, расписание, изображения, эффекты переходов и автосохранение"
-                               FontSize="13"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Margin="0,4,0,0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="OpenLastPlaylistButton"
-                            Content="Открыть последний"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Click="OpenLastPlaylistButton_Click"/>
-
-                    <Button x:Name="LoadPlaylistButton"
-                            Content="Загрузить плейлист"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Click="LoadPlaylistButton_Click"/>
-
-                    <Button x:Name="SavePlaylistButton"
-                            Content="Сохранить плейлист"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Click="SavePlaylistButton_Click"/>
-
-                    <Button x:Name="OpenSliderButton"
-                            Content="Запустить слайдер"
-                            Width="165"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Click="OpenSliderButton_Click"/>
-                </StackPanel>
-            </Grid>
-        </Border>
 
         <!-- Основная область -->
         <Grid Margin="18">
@@ -245,351 +872,533 @@
             </Grid.ColumnDefinitions>
 
             <!-- Левая панель -->
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
+            <Border Grid.Column="0"
+        Background="#3B3B3B"
+        CornerRadius="14"
+        Padding="18"
+        Margin="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="0"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1"/>
+                        <RowDefinition Height="175"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- Список периодов -->
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0"
+                   Text="ПЕРИОДЫ ПОКАЗА"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="#EAEAEA"
+                   HorizontalAlignment="Center"/>
+                    <Grid Background="#1c1c1c"
+                          Grid.Row="1">
 
-                            <TextBlock Text="Периоды показа"
-                                       Style="{StaticResource SectionTitleStyle}"/>
-                            <ListBox x:Name="DaysListBox"
-                                                Grid.Row="1"
-                                                 Height="240"
-                                                 SelectionChanged="DaysListBox_SelectionChanged"
-                                                 Background="{StaticResource InputBrush}"
-                                                 BorderBrush="{StaticResource BorderBrushDark}"
-                                                 BorderThickness="1">       
+                    </Grid>
 
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="0,2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                    <ListBox x:Name="DaysListBox"
+                 Grid.Row="2"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 SelectionChanged="DaysListBox_SelectionChanged"
+                 HorizontalContentAlignment="Stretch"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 MaxHeight="430">
 
-                                            <TextBlock Text="{Binding Name}"
-                           VerticalAlignment="Center"
-                           Foreground="{StaticResource TextBrush}"/>
 
-                                            <Button Grid.Column="1"
-                                                    Content="⋯"
-                                                    Style="{StaticResource DotsButtonStyle}"
-                                                    Click="PeriodMenuButton_Click">             
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
 
-                                                <Button.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Header="Изменить"
-                                      Click="EditPeriod_Click"/>
-                                                        <MenuItem Header="Удалить"
-                                      Click="DeletePeriod_Click"/>
-                                                    </ContextMenu>
-                                                </Button.ContextMenu>
+                                <Setter Property="Margin" Value="0,0,0,8"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Background" Value="#1c1c1c"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
 
-                                            </Button>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="PeriodCard"
+                Background="#2B2B2B"
+                CornerRadius="10"
+                Height="54"
+                Padding="16,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
+                                        <Grid>
+                                            <TextBlock x:Name="PeriodNameTextBlock"
+                               Text="{Binding Name}"
+                               VerticalAlignment="Center"
+                               Foreground="#F0F0F0"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"
+                               MouseDown="PeriodNameTextBlock_MouseDown"/>
+
+                                            <TextBox x:Name="PeriodNameEditTextBox"
+                             Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Visibility="Collapsed"
+                             VerticalContentAlignment="Center"
+                             FontSize="14"
+                             Foreground="#F0F0F0"
+                             Background="#3A3A3A"
+                             BorderBrush="#5A5A5A"
+                             BorderThickness="1"
+                             Padding="6,0"
+                             KeyDown="PeriodNameEditTextBox_KeyDown"
+                             LostFocus="PeriodNameEditTextBox_LostFocus"/>
                                         </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
 
-                            </ListBox>
+                                        <Button x:Name="PeriodMenuButton"
+                        Grid.Column="1"
+                        Content="..."
+                        Visibility="Collapsed"
+                        Style="{StaticResource PeriodMenuDotsStyle}"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Click="PeriodMenuButton_Click">
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Изменить"
+                                      Click="EditPeriod_Click"/>
+                                                    <MenuItem Header="Удалить"
+                                      Click="DeletePeriod_Click"/>
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="PeriodCard" Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="PeriodMenuButton" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Button x:Name="AddDayGroupButton"
+        Grid.Row="4"
+        Content="+"
+        Style="{StaticResource SecondaryButtonStyle}"
+        Height="56"
+        FontSize="28"
+        FontWeight="Light"
+        Margin="0"
+        Click="AddDayGroupButton_Click"/>
+                    
+                    <TextBlock Grid.Row="8"
+                   Text="СВОЙСТВА"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="#EAEAEA"
+                   HorizontalAlignment="Center"/>
+
+                    <StackPanel Grid.Row="10">
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="54"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="54"/>
+                            </Grid.ColumnDefinitions>
 
 
-                            <StackPanel Grid.Row="2" Margin="0,12,0,0">
-                                <Button x:Name="AddDayGroupButton"
-                                        Content="Добавить период"
-                                        Style="{StaticResource PrimaryButtonStyle}"
-                                        Click="AddDayGroupButton_Click"/>
+                            <StackPanel Grid.ColumnSpan="3">
+                                <TextBlock Text="НАЧАЛО"
+                               Foreground="#DADADA"
+                               FontSize="11"
+                               HorizontalAlignment="Center"/>
+                                <DatePicker x:Name="StartDatePicker"
+                                SelectedDateFormat="Short"
+                                Style="{StaticResource DarkDatePickerStyle}" Width="165"/>
+                            </StackPanel>
 
-                                <TextBlock Text="Каждый период имеет начало и конец. В активный момент показываются только его картинки."
-                                           FontSize="12"
-                                           Foreground="{StaticResource MutedTextBrush}"
-                                           TextWrapping="Wrap"
-                                           Margin="0,6,0,0"/>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Ч"
+                               Foreground="#DADADA"
+                               FontSize="11"
+                               HorizontalAlignment="Center"/>
+                                <TextBox x:Name="StartHourTextBox"
+                             Style="{StaticResource SmallTimeTextBoxStyle}"
+                                    Text="00"
+                                    PreviewTextInput="TimeTextBox_PreviewTextInput"
+                                    TextChanged="TimeTextBox_TextChanged"
+                                    MouseWheel="Hour_MouseWheel"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="6">
+                                <TextBlock Text="М"
+                               Foreground="#DADADA"
+                               FontSize="11"
+                               HorizontalAlignment="Center"/>
+                                <TextBox x:Name="StartMinuteTextBox"
+                                Text="00"
+                                Style="{StaticResource SmallTimeTextBoxStyle}"
+                                PreviewTextInput="TimeTextBox_PreviewTextInput"
+                                TextChanged="TimeTextBox_TextChanged"
+                                MouseWheel="Minute_MouseWheel"/>
                             </StackPanel>
                         </Grid>
-                    </Border>
 
-                    <!-- Редактор периода -->
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <StackPanel>
-                            <TextBlock Text="Настройки периода"
-                                       Style="{StaticResource SectionTitleStyle}"/>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="54"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="54"/>
+                            </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="Имя периода"
-                                       Style="{StaticResource LabelStyle}"/>
-                            <TextBox x:Name="PeriodNameTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     Text="Новый период"/>
 
-                            <TextBlock Text="Начало периода (дд.ММ.гггг ЧЧ:мм)"
-                                       Style="{StaticResource LabelStyle}"
-                                       Margin="0,12,0,6"/>
-                            <TextBox x:Name="PeriodStartTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     Text="01.01.2026 00:00"/>
+                            <StackPanel Grid.ColumnSpan="3">
+                                <TextBlock Text="ОКОНЧАНИЕ"
+                               Foreground="#DADADA"
+                               FontSize="11"
+                               HorizontalAlignment="Center"/>
+                                <DatePicker x:Name="EndDatePicker"
+                                SelectedDateFormat="Short"
+                                Style="{StaticResource DarkDatePickerStyle}" Width="165"/>
+                            </StackPanel>
 
-                            <TextBlock Text="Конец периода (дд.ММ.гггг ЧЧ:мм)"
-                                       Style="{StaticResource LabelStyle}"
-                                       Margin="0,12,0,6"/>
-                            <TextBox x:Name="PeriodEndTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     Text="02.01.2026 00:00"/>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Ч"
+                               Foreground="#DADADA"
+                               FontSize="11"
+                               HorizontalAlignment="Center"/>
+                                <TextBox x:Name="EndHourTextBox"
+                             Style="{StaticResource SmallTimeTextBoxStyle}"
+                             Text="00"
+                             PreviewTextInput="TimeTextBox_PreviewTextInput"
+                             TextChanged="TimeTextBox_TextChanged"
+                             MouseWheel="Hour_MouseWheel"/>
+                            </StackPanel>
 
-                            <Button x:Name="ApplyPeriodSettingsButton"
-                                    Content="Применить настройки периода"
-                                    Style="{StaticResource PrimaryButtonStyle}"
-                                    Margin="0,14,0,0"
-                                    Click="ApplyPeriodSettingsButton_Click"/>
-                        </StackPanel>
-                    </Border>
+                            <StackPanel Grid.Column="6">
+                                <TextBlock Text="М"
+                               Foreground="#DADADA"
+                               FontSize="11"
+                               HorizontalAlignment="Center"/>
+                                <TextBox x:Name="EndMinuteTextBox"
+                             Style="{StaticResource SmallTimeTextBoxStyle}"
+                             Text="00"
+                             PreviewTextInput="TimeTextBox_PreviewTextInput"
+                             TextChanged="TimeTextBox_TextChanged"
+                             MouseWheel="Minute_MouseWheel"/>
+                            </StackPanel>
+                        </Grid>
 
-                </StackPanel>
-            </ScrollViewer>
+                        <Button x:Name="ApplyPeriodSettingsButton"
+        Content="ПРИМЕНИТЬ"
+        Style="{StaticResource ApplyPeriodButtonStyle}"
+        Click="ApplyPeriodSettingsButton_Click" Height="38"/>
 
-            <!-- Центральная панель -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="180"/>
-                    <RowDefinition Height="12"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                        <TextBox x:Name="PeriodNameTextBox"
+                     Visibility="Collapsed"/>
 
-                <!-- Кнопки управления -->
-                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
-                    <Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+
+            <!-- Новый центральный блок -->
+            <Border Grid.Column="2"
+        Background="#3B3B3B"
+        CornerRadius="14"
+        Padding="16" Grid.ColumnSpan="3" Margin="0,0,10,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Шапка -->
+                    <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Text="Изображения выбранного периода"
-                                       Style="{StaticResource SectionTitleStyle}"/>
-                            <TextBlock Text="Добавляй фото кнопкой или перетаскивай их в зону ниже."
-                                       FontSize="13"
-                                       Foreground="{StaticResource MutedTextBrush}"/>
-                        </StackPanel>
+                        <TextBlock Text="КОНТЕНТ ПЕРИОДА"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Foreground="#EAEAEA"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
 
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
-                            <Button x:Name="AddImagesButton"
-                                    Content="+ Добавить фото"
-                                    Style="{StaticResource PrimaryButtonStyle}"
-                                    Click="AddImagesButton_Click"/>
-
-                            <Button x:Name="RemoveSelectedImageButton"
-                                    Content="Удалить выбранное"
-                                    Style="{StaticResource DangerButtonStyle}"
-                                    Click="RemoveSelectedImageButton_Click"/>
-                        </StackPanel>
+                        <TextBlock Grid.Column="1"
+                       x:Name="PlaylistHeaderTextBlock"
+                       Text="ПЛЕЙЛИСТ: НОВЫЙ ПЛЕЙЛИСТ"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#EAEAEA"
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0"/>
                     </Grid>
-                </Border>
 
-                <!-- Drag & Drop -->
-                <Border Grid.Row="1"
-                        Background="{StaticResource CardBrushAlt}"
-                        BorderBrush="{StaticResource BorderBrushDark}"
-                        BorderThickness="2"
-                        CornerRadius="14"
-                        AllowDrop="True"
-                        DragEnter="DropZone_DragEnter"
-                        DragOver="DropZone_DragOver"
-                        Drop="DropZone_Drop">
-                    <Grid>
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                            <TextBlock Text="Перетащи фото сюда"
-                                       FontSize="24"
-                                       FontWeight="Bold"
-                                       Foreground="{StaticResource TextBrush}"
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="Поддерживаются JPG, JPEG, PNG, BMP"
-                                       FontSize="14"
-                                       Foreground="{StaticResource MutedTextBrush}"
-                                       Margin="0,8,0,0"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                    <!-- Зона таблицы / дропа -->
+                    <Border Grid.Row="2"
+        Background="#151515"
+        CornerRadius="10"
+        Padding="10"
+        AllowDrop="True"
+        DragEnter="DropZone_DragEnter"
+        DragOver="DropZone_DragOver"
+        Drop="DropZone_Drop">
 
-                <!-- Таблица картинок -->
-                <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                        <TextBlock Text="Список изображений"
-                                   Style="{StaticResource SectionTitleStyle}"/>
-
-                        <DataGrid x:Name="ImagesDataGrid"
-                                  Grid.Row="1"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  SelectionMode="Single"
-                                  BorderBrush="{StaticResource BorderBrushDark}"
-                                  BorderThickness="1"
-                                  SelectionChanged="ImagesDataGrid_SelectionChanged"
-                                  MouseDoubleClick="ImagesDataGrid_MouseDoubleClick">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Имя файла"
-                                                    Binding="{Binding FileName}"
-                                                    Width="220"/>
-
-                                <DataGridTextColumn Header="Полный путь"
-                                                    Binding="{Binding ImagePath}"
-                                                    Width="*"/>
-
-                                <DataGridTextColumn Header="Длительность (сек)"
-                                                    Binding="{Binding DurationSeconds}"
-                                                    Width="140"/>
-
-                                <DataGridTextColumn Header="Эффект"
-                                                    Binding="{Binding TransitionEffect}"
-                                                    Width="140"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <!-- Правая панель -->
-            <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-
-                    <!-- Настройки изображения -->
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <StackPanel>
-                            <TextBlock Text="Настройки выбранного изображения"
-                                       Style="{StaticResource SectionTitleStyle}"/>
-
-                            <TextBlock Text="Путь к файлу" Style="{StaticResource LabelStyle}"/>
-                            <TextBox x:Name="SelectedImagePathTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     IsReadOnly="True"/>
-
-                            <TextBlock Text="Длительность показа (секунды)"
-                                       Style="{StaticResource LabelStyle}"
-                                       Margin="0,12,0,6"/>
-                            <TextBox x:Name="DurationTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     Text="5"/>
-
-                            <TextBlock Text="Эффект перелистывания"
-                                       Style="{StaticResource LabelStyle}"
-                                       Margin="0,12,0,6"/>
-                            <ComboBox x:Name="TransitionEffectComboBox"
-                                      Style="{StaticResource InputComboBoxStyle}"
-                                      SelectedIndex="0">
-                                <ComboBoxItem Content="Затухание"/>
-                                <ComboBoxItem Content="Перелистывание"/>
-                            </ComboBox>
-
-                            <Button x:Name="ApplyImageSettingsButton"
-                                    Content="Применить настройки изображения"
-                                    Style="{StaticResource PrimaryButtonStyle}"
-                                    Margin="0,14,0,0"
-                                    Click="ApplyImageSettingsButton_Click"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Плейлист -->
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <StackPanel>
-                            <TextBlock Text="Плейлист"
-                                       Style="{StaticResource SectionTitleStyle}"/>
-
-                            <TextBlock Text="Имя плейлиста" Style="{StaticResource LabelStyle}"/>
-                            <TextBox x:Name="PlaylistNameTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     Text="Новый плейлист"/>
-
-                            <TextBlock Text="Путь сохранения"
-                                       Style="{StaticResource LabelStyle}"
-                                       Margin="0,12,0,6"/>
-                            <Grid>
+                            <!-- Шапка -->
+                            <Grid Grid.Row="0" Margin="6,0,6,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="40"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBox x:Name="PlaylistPathTextBox"
-                                         Grid.Column="0"
-                                         Style="{StaticResource InputTextBoxStyle}"
-                                         IsReadOnly="True"/>
+                                <TextBlock Grid.Column="0"
+                       Text="ИМЯ ФАЙЛА"
+                       Foreground="#EAEAEA"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
 
-                                <Button x:Name="ChoosePlaylistPathButton"
-                                        Grid.Column="2"
-                                        Content="Выбрать путь"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        Margin="0"
-                                        Click="ChoosePlaylistPathButton_Click"/>
+                                <TextBlock Grid.Column="1"
+                       Text="ДЛИТЕЛЬНОСТЬ (СЕК)"
+                       Foreground="#EAEAEA"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"/>
+
+                                <TextBlock Grid.Column="2"
+                       Text="ЭФФЕКТ ПЕРЕХОДА"
+                       Foreground="#EAEAEA"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"/>
                             </Grid>
-                        </StackPanel>
+
+                            <!-- Линия -->
+                            <Border Grid.Row="1"
+                Height="1"
+                Background="#EAEAEA"
+                Margin="0,0,0,2"/>
+
+                            <!-- Таблица -->
+                            <Grid Grid.Row="2">
+
+                                <TextBlock x:Name="EmptyDropHintTextBlock"
+                       Text="ПЕРЕТАЩИ СЮДА ФОТО"
+                       Foreground="#6F6F6F"
+                       FontSize="28"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsHitTestVisible="False"/>
+
+                                <DataGrid x:Name="ImagesDataGrid"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  HeadersVisibility="None"
+                                                  GridLinesVisibility="None"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False"
+                                                  CanUserDeleteRows="False"
+                                                  SelectionMode="Single"
+                                                  RowStyle="{StaticResource PlaylistRowStyle}"
+                                                  SelectionChanged="ImagesDataGrid_SelectionChanged"
+                                                  MouseDoubleClick="ImagesDataGrid_MouseDoubleClick"
+                                                  PreviewMouseLeftButtonDown="ImagesDataGrid_PreviewMouseLeftButtonDown"
+                                                  MouseMove="ImagesDataGrid_MouseMove"
+                                                  DragOver="ImagesDataGrid_DragOver"
+                                                  DragLeave="ImagesDataGrid_DragLeave"
+                                                  Drop="ImagesDataGrid_Drop"
+                                                  AllowDrop="True"
+                                                    RowEditEnding="ImagesDataGrid_RowEditEnding">
+
+                                    <DataGrid.Columns>
+
+                                        <!-- Имя файла -->
+                                        <DataGridTextColumn Header="ИМЯ ФАЙЛА"
+                                        Binding="{Binding FileName}"
+                                        Width="*"
+                                        IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                    <Setter Property="FontSize" Value="14"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="Margin" Value="10,0,0,0"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <!-- Длительность -->
+                                        <DataGridTemplateColumn Header="ДЛИТЕЛЬНОСТЬ (СЕК)" Width="150">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding DurationSeconds}"
+                       Foreground="#EAEAEA"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       VerticalAlignment="Center"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+
+                                            <DataGridTemplateColumn.CellEditingTemplate>
+                                                <DataTemplate>
+                                                    <TextBox Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                     Foreground="#EAEAEA"
+                     Background="#2B2B2B"
+                     BorderBrush="#5A5A5A"
+                     BorderThickness="1"
+                     FontSize="14"
+                     HorizontalContentAlignment="Center"
+                     VerticalContentAlignment="Center"
+                     CaretBrush="White"
+                     PreviewTextInput="DurationEditingTextBox_PreviewTextInput"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellEditingTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Эффект -->
+                                        <DataGridTemplateColumn Header="ЭФФЕКТ ПЕРЕХОДА" Width="200">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding TransitionEffect}"
+                                           Foreground="#EAEAEA"
+                                           FontSize="14"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Удаление -->
+                                        <DataGridTemplateColumn Width="40">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button x:Name="DeleteImageRowButton"
+                                        Content="×"
+                                        Width="24"
+                                        Height="24"
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Style="{StaticResource DeleteRowButtonStyle}"
+                                        Click="DeleteImageRowButton_Click"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Grid>
                     </Border>
 
-                    <!-- Автосохранение -->
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <StackPanel>
-                            <TextBlock Text="Автосохранение"
-                                       Style="{StaticResource SectionTitleStyle}"/>
+                    <!-- Нижние кнопки -->
+                    <UniformGrid Grid.Row="4" Columns="6" Margin="0">
+                        <Button x:Name="AddImagesButton"
+                    Content="+ ДОБАВИТЬ ФОТО"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,10,0"
+                    Click="AddImagesButton_Click"/>
 
-                            <CheckBox x:Name="AutoSaveCheckBox"
-                                      Content="Включить автосохранение"
-                                      FontSize="14"
-                                      FontWeight="SemiBold"
-                                      Checked="AutoSaveCheckBox_Checked"
-                                      Unchecked="AutoSaveCheckBox_Unchecked"/>
+                        <Button x:Name="OpenLastPlaylistButton"
+                    Content="ПОСЛЕДНИЙ"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,10,0"
+                    Click="OpenLastPlaylistButton_Click"/>
 
-                            <TextBlock Text="Период автосохранения (минуты)"
-                                       Style="{StaticResource LabelStyle}"
-                                       Margin="0,12,0,6"/>
-                            <TextBox x:Name="AutoSaveMinutesTextBox"
-                                     Style="{StaticResource InputTextBoxStyle}"
-                                     Text="5"/>
+                        <Button x:Name="LoadPlaylistButton"
+                    Content="ЗАГРУЗИТЬ"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,10,0"
+                    Click="LoadPlaylistButton_Click"/>
 
-                            <Button x:Name="ApplyAutoSaveButton"
-                                    Content="Применить автосохранение"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Margin="0,14,0,0"
-                                    Click="ApplyAutoSaveButton_Click"/>
-                        </StackPanel>
-                    </Border>
+                        <Button x:Name="SavePlaylistButton"
+                    Content="СОХРАНИТЬ"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,10,0"
+                    Click="SavePlaylistButton_Click"/>
 
-                    <!-- Служебная информация -->
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <StackPanel>
-                            <TextBlock Text="Служебная информация"
-                                       Style="{StaticResource SectionTitleStyle}"/>
+                        <Button x:Name="OpenSettingsButton"
+                    Content="НАСТРОЙКИ"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,10,0"/>
 
-                            <TextBlock x:Name="CurrentDayInfoTextBlock"
-                                       Text="Период: не выбран"
-                                       FontSize="14"
-                                       Foreground="{StaticResource TextBrush}"
-                                       Margin="0,0,0,8"
-                                       TextWrapping="Wrap"/>
+                        <Button x:Name="OpenSliderButton"
+                    Content="СЛАЙДЕР"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Click="OpenSliderButton_Click"/>
+                    </UniformGrid>
+                </Grid>
+            </Border>
 
-                            <TextBlock x:Name="StatusTextBlock"
-                                       Text="Статус: готово"
-                                       FontSize="14"
-                                       Foreground="{StaticResource AccentBrush}"
-                                       TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
+            <!-- Правая панель -->
 
-                </StackPanel>
-            </ScrollViewer>
         </Grid>
+        <!-- Скрытые технические контролы, чтобы не ломать текущую логику -->
+        <StackPanel Visibility="Collapsed">
+            <TextBox x:Name="PlaylistNameTextBox" Text="Новый плейлист"  TextChanged="PlaylistNameTextBox_TextChanged" />
+            <TextBox x:Name="PlaylistPathTextBox"/>
+            <CheckBox x:Name="AutoSaveCheckBox"/>
+            <TextBox x:Name="AutoSaveMinutesTextBox" Text="5"/>
+            <TextBlock x:Name="StatusTextBlock" Text=""/>
+
+            <TextBox x:Name="SelectedImagePathTextBox"/>
+            <TextBox x:Name="DurationTextBox" Text="5"/>
+
+            <ComboBox x:Name="TransitionEffectComboBox">
+                <ComboBoxItem Content="Затухание"/>
+                <ComboBoxItem Content="Перелистывание"/>
+            </ComboBox>
+
+            <TextBlock x:Name="CurrentDayInfoTextBlock" Text=""/>
+
+        </StackPanel>
     </DockPanel>
 </Window>
