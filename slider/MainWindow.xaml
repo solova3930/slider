@@ -878,6 +878,7 @@
         Padding="18"
         Margin="0">
                 <Grid>
+                    
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="0"/>
@@ -1342,7 +1343,7 @@
                     <!-- Нижние кнопки -->
                     <UniformGrid Grid.Row="4" Columns="6" Margin="0">
                         <Button x:Name="AddImagesButton"
-                    Content="+ ДОБАВИТЬ ФОТО"
+                    Content="+ ФОТО"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Margin="0,0,10,0"
                     Click="AddImagesButton_Click"/>
