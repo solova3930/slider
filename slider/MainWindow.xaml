@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:slider"
         mc:Ignorable="d"
-        Title="Конфигуратор слайдера"
+        Icon="/app.ico"
+        Title="Конфигуратор"
         Height="850"
         Width="1400"
         MinHeight="760"
@@ -37,8 +38,9 @@
         <SolidColorBrush x:Key="MutedTextBrush" Color="#6c6c6c"/>
         <SolidColorBrush x:Key="InputBrush" Color="#1c1c1c"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#22C55E"/>
+
         <Style x:Key="DeleteRowButtonStyle" TargetType="Button">
-            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="Opacity" Value="0"/>
             <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -49,7 +51,6 @@
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -65,7 +66,7 @@
 
             <Style.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsMouseOver}" Value="True">
-                    <Setter Property="Visibility" Value="Visible"/>
+                    <Setter Property="Opacity" Value="1"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -512,20 +513,25 @@
             <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="30"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridRow">
-                        <Border Background="{TemplateBinding Background}">
-                            <Grid>
-                                <DataGridCellsPresenter/>
-                                <Border Background="#2A2A2A"
-                                Height="1"
-                                VerticalAlignment="Bottom"/>
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="MinHeight" Value="30"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3A3A3A"/>
+                </Trigger>
+
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#5A5A5A"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsSelected" Value="True"/>
+                        <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="#5A5A5A"/>
+                </MultiTrigger>
+            </Style.Triggers>
         </Style>
 
 
@@ -991,10 +997,28 @@
                                 </Border>
 
                                 <DataTemplate.Triggers>
-                                    <Trigger SourceName="PeriodCard" Property="IsMouseOver" Value="True">
+                                    <!-- Hover -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
+                                        <Setter TargetName="PeriodCard" Property="Background" Value="#444444"/>
                                         <Setter TargetName="PeriodMenuButton" Property="Visibility" Value="Visible"/>
-                                    </Trigger>
+                                    </DataTrigger>
+
+                                    <!-- Selected -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                        <Setter TargetName="PeriodCard" Property="Background" Value="#5A5A5A"/>
+                                    </DataTrigger>
+
+                                    <!-- Selected + Hover -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True"/>
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="PeriodCard" Property="Background" Value="#666666"/>
+                                        <Setter TargetName="PeriodMenuButton" Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
                                 </DataTemplate.Triggers>
+
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -1257,7 +1281,10 @@
                                                   Drop="ImagesDataGrid_Drop"
                                                   AllowDrop="True"
                                                     RowEditEnding="ImagesDataGrid_RowEditEnding">
-
+                                    <DataGrid.Resources>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#5A5A5A"/>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#5A5A5A"/>
+                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
 
                                         <!-- Имя файла -->
@@ -1274,6 +1301,7 @@
                                                 </Style>
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
+                                        
 
                                         <!-- Длительность -->
                                         <DataGridTemplateColumn Header="ДЛИТЕЛЬНОСТЬ (СЕК)" Width="150">
@@ -1369,7 +1397,8 @@
                         <Button x:Name="OpenSettingsButton"
                     Content="НАСТРОЙКИ"
                     Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="0,0,10,0"/>
+                    Margin="0,0,10,0"
+                    Click="OpenSettingsButton_Click"/>
 
                         <Button x:Name="OpenSliderButton"
                     Content="СЛАЙДЕР"

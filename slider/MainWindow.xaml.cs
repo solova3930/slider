@@ -24,6 +24,7 @@ namespace slider
         private bool isLoadingPlaylist = false;
         private string playlistFilePath = "";
         private DateTime lastFileWriteTime = DateTime.MinValue;
+        private SliderWindow? sliderWindow = null;
         public MainWindow()
         {
             InitializeComponent();
@@ -436,6 +437,37 @@ namespace slider
             ScheduleAutoSave();
         }
 
+        private PlaylistData currentPlaylistSettings = new PlaylistData();
+
+        private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            currentPlaylistSettings.PlaylistName = PlaylistNameTextBox.Text;
+            currentPlaylistSettings.PlaylistPath = PlaylistPathTextBox.Text;
+            currentPlaylistSettings.AutoSaveEnabled = AutoSaveCheckBox.IsChecked == true;
+
+            if (int.TryParse(AutoSaveMinutesTextBox.Text, out int autoSaveMinutes))
+                currentPlaylistSettings.AutoSaveMinutes = autoSaveMinutes;
+
+            currentPlaylistSettings.Periods = periods;
+
+            SettingsWindow settingsWindow = new SettingsWindow(currentPlaylistSettings);
+            settingsWindow.Owner = this;
+
+            if (settingsWindow.ShowDialog() == true)
+            {
+                currentPlaylistSettings = settingsWindow.SettingsData;
+
+                PlaylistNameTextBox.Text = currentPlaylistSettings.PlaylistName;
+                PlaylistPathTextBox.Text = currentPlaylistSettings.PlaylistPath;
+                AutoSaveCheckBox.IsChecked = currentPlaylistSettings.AutoSaveEnabled;
+                AutoSaveMinutesTextBox.Text = currentPlaylistSettings.AutoSaveMinutes.ToString();
+
+                RefreshPlaylistHeader();
+                UpdateStatus("Настройки сохранены");
+                ScheduleAutoSave();
+            }
+        }
+
         private void ImagesDataGrid_DragLeave(object sender, DragEventArgs e)
         {
             if (_lastHighlightedRow != null)
@@ -698,9 +730,25 @@ namespace slider
             if (PlaylistHeaderTextBlock != null)
                 PlaylistHeaderTextBlock.Text = $"ПЛЕЙЛИСТ: {name.ToUpper()}";
         }
+        private void CommitAllEdits()
+        {
+            try
+            {
+                Keyboard.ClearFocus();
 
+                if (ImagesDataGrid != null)
+                {
+                    ImagesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    ImagesDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+                }
+            }
+            catch
+            {
+            }
+        }
         private void SavePlaylistButton_Click(object sender, RoutedEventArgs e)
         {
+            CommitAllEdits();
             string filePath = PlaylistPathTextBox.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(filePath))
@@ -709,7 +757,7 @@ namespace slider
                 {
                     Title = "Сохранить плейлист",
                     Filter = "JSON Playlist|*.json",
-
+                    FileName = "playlist.json"
 
 
                 };
@@ -729,8 +777,8 @@ namespace slider
                 currentPlaylistFilePath = filePath;
                 SaveLastPlaylistPath(filePath);
 
-                UpdateStatus("Плейлист сохранён");
                 RefreshPlaylistHeader();
+                UpdateStatus("Плейлист сохранён");
                 MessageBox.Show("Плейлист успешно сохранён.");
             }
             catch (Exception ex)
@@ -746,22 +794,35 @@ namespace slider
 
         private void OpenSliderButton_Click(object sender, RoutedEventArgs e)
         {
-            var activePeriod = GetActivePeriod();
-
-            if (activePeriod == null)
+            if (periods == null || periods.Count == 0)
             {
-                MessageBox.Show("Сейчас нет активного периода показа");
+                MessageBox.Show("Нет периодов для показа");
                 return;
             }
 
-            if (activePeriod.Slides.Count == 0)
+            if (sliderWindow != null)
             {
-                MessageBox.Show("В активном периоде нет изображений");
-                return;
+                try
+                {
+                    sliderWindow.Close();
+                }
+                catch
+                {
+                }
+
+                sliderWindow = null;
             }
-        
-            SliderWindow slider = new SliderWindow(periods, PlaylistPathTextBox.Text);
-            slider.Show();
+
+            sliderWindow = new SliderWindow(periods, PlaylistPathTextBox.Text);
+            sliderWindow.Closed += SliderWindow_Closed;
+            sliderWindow.Show();
+
+            UpdateStatus("Слайдер запущен");
+        }
+
+        private void SliderWindow_Closed(object? sender, EventArgs e)
+        {
+            sliderWindow = null;
         }
 
         // =========================
@@ -824,16 +885,13 @@ namespace slider
             {
                 foreach (var file in dialog.FileNames)
                 {
-                    if (!selectedPeriod.Slides.Any(s => s.ImagePath == file))
+                    selectedPeriod.Slides.Add(new SlideItem
                     {
-                        selectedPeriod.Slides.Add(new SlideItem
-                        {
-                            FileName = System.IO.Path.GetFileName(file),
-                            ImagePath = file,
-                            DurationSeconds = 5,
-                            TransitionEffect = "Затухание"
-                        });
-                    }
+                        FileName = System.IO.Path.GetFileName(file),
+                        ImagePath = file,
+                        DurationSeconds = 5,
+                        TransitionEffect = "Затухание"
+                    });
                 }
 
                 RefreshImagesGrid();
@@ -944,16 +1002,13 @@ namespace slider
 
                 if (extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".bmp")
                 {
-                    if (!selectedPeriod.Slides.Any(s => s.ImagePath == file))
+                    selectedPeriod.Slides.Add(new SlideItem
                     {
-                        selectedPeriod.Slides.Add(new SlideItem
-                        {
-                            FileName = System.IO.Path.GetFileName(file),
-                            ImagePath = file,
-                            DurationSeconds = 5,
-                            TransitionEffect = "Затухание"
-                        });
-                    }
+                        FileName = System.IO.Path.GetFileName(file),
+                        ImagePath = file,
+                        DurationSeconds = 5,
+                        TransitionEffect = "Затухание"
+                    });
                 }
             }
 
