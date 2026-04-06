@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -14,15 +15,51 @@ namespace slider
         private readonly List<PlaylistPeriod> periods;
         private List<SlideItem> currentSlides = new();
         private int currentIndex = 0;
-
         private readonly DispatcherTimer slideTimer;
         private readonly DispatcherTimer periodCheckTimer;
+        private string playlistFilePath = "";
+        private DateTime lastFileWriteTime = DateTime.MinValue;
+        private void CheckPlaylistFileChanges()
+        {
+            if (string.IsNullOrWhiteSpace(playlistFilePath))
+                return;
 
-        public SliderWindow(List<PlaylistPeriod> playlistPeriods)
+            if (!File.Exists(playlistFilePath))
+                return;
+
+            DateTime writeTime = File.GetLastWriteTime(playlistFilePath);
+
+            if (writeTime <= lastFileWriteTime)
+                return;
+
+            lastFileWriteTime = writeTime;
+
+            try
+            {
+                var data = slider.Services.PlaylistFileService.Load(playlistFilePath);
+
+                periods.Clear();
+
+                if (data.Periods != null)
+                {
+                    foreach (var p in data.Periods)
+                        periods.Add(p);
+                }
+
+                ReloadActiveSlides(true);
+            }
+            catch
+            {
+                // можно лог или игнор
+            }
+        }
+
+        public SliderWindow(List<PlaylistPeriod> playlistPeriods, string filePath)
         {
             InitializeComponent();
 
             periods = playlistPeriods ?? new List<PlaylistPeriod>();
+            playlistFilePath = filePath;
 
             slideTimer = new DispatcherTimer();
             slideTimer.Tick += SlideTimer_Tick;
@@ -32,7 +69,7 @@ namespace slider
             periodCheckTimer.Tick += PeriodCheckTimer_Tick;
             periodCheckTimer.Start();
 
-            ReloadActiveSlides(forceReload: true);
+            ReloadActiveSlides(true);
         }
 
         private void SlideTimer_Tick(object? sender, EventArgs e)
@@ -52,10 +89,14 @@ namespace slider
             RestartSlideTimer();
         }
 
+
+
         private void PeriodCheckTimer_Tick(object? sender, EventArgs e)
         {
+            CheckPlaylistFileChanges();
             ReloadActiveSlides(forceReload: false);
         }
+
 
         private List<PlaylistPeriod> GetActivePeriods()
         {
