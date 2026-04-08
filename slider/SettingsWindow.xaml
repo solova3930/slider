@@ -131,16 +131,26 @@
                                               Content="{TemplateBinding SelectionBoxItem}"
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
 
-                                    <Border Grid.Column="1"
-                                    Background="#2A2A2A"
-                                    BorderBrush="#5A5A5A"
-                                    BorderThickness="1,0,0,0">
-                                        <TextBlock Text="▼"
-                                           Foreground="#F0F0F0"
-                                           FontSize="12"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                                    </Border>
+                                    <ToggleButton Grid.Column="1"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          Focusable="False"
+                                          Background="#2A2A2A"
+                                          BorderBrush="#5A5A5A"
+                                          BorderThickness="1,0,0,0">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                                    <TextBlock Text="▼"
+                                                       Foreground="#F0F0F0"
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
                                 </Grid>
                             </Border>
 
@@ -169,7 +179,7 @@
                             </Trigger>
 
                             <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                <Setter TargetName="MainBorder" Property="BorderBrush" Value="#93C5FD"/>
+                                <Setter TargetName="MainBorder" Property="BorderBrush" Value="#6B7280"/>
                             </Trigger>
 
                             <Trigger Property="IsEnabled" Value="False">
@@ -229,13 +239,49 @@
                 <Border Background="#3A3A3A" CornerRadius="12" Padding="16">
                     <StackPanel>
                         <TextBlock Text="Поток / запись" Style="{StaticResource SectionTitleStyle}"/>
-
                         <CheckBox x:Name="EnableStreamingCheckBox"
-                                  Content="Отправлять поток на URL"
-                                  Foreground="#F0F0F0"
-                                  FontSize="14"
-                                  Margin="0,0,0,12"/>
+          Content="Включить стриминг"
+          Foreground="#F0F0F0"
+          FontSize="14"
+          Margin="0,0,0,12"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button x:Name="TestFfmpegStartButton"
+                                    Style="{StaticResource ActionButtonStyle}"
+            Content="ТЕSТ FFMPEG START"
+            Width="150"
+            Height="36"
+            Margin="0,0,8,0"
+            Click="TestFfmpegStartButton_Click"/>
 
+                            <Button x:Name="TestFfmpegStopButton"
+                                    Style="{StaticResource ActionButtonStyle}"
+            Content="ТЕSТ FFMPEG STOP"
+            Width="110"
+            Height="36"
+            Click="TestFfmpegStopButton_Click"/>
+                            <Button x:Name="TestRenderPlaylistButton"
+        Style="{StaticResource ActionButtonStyle}"
+        Content="РЕНДЕР ПЛЕЙЛИСТ"
+        Width="110"
+        Height="36"
+        Margin="8,0,0,0"
+        Click="TestRenderPlaylistButton_Click"/>
+                            <Button x:Name="StartPlaylistStreamButton"
+        Style="{StaticResource ActionButtonStyle}"
+        Content="СТРИМ ПЛЕЙЛИСТ"
+        Width="130"
+        Height="36"
+        Margin="8,0,0,0"
+        Click="StartPlaylistStreamButton_Click"/>
+
+                            <Button x:Name="StopPlaylistStreamButton"
+        Style="{StaticResource ActionButtonStyle}"
+        Content="СТОП СТРИМ"
+        Width="110"
+        Height="36"
+        Margin="8,0,0,0"
+        Click="StopPlaylistStreamButton_Click"/>
+                        </StackPanel>
                         <TextBlock Text="URL потока" Style="{StaticResource LabelStyle}"/>
                         <TextBox x:Name="OutputUrlTextBox" Style="{StaticResource InputTextBoxStyle}"/>
 
@@ -320,6 +366,7 @@
         </ScrollViewer>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+
             <Button Content="Отмена"
                     Style="{StaticResource ActionButtonStyle}"
                     Click="CancelButton_Click"/>

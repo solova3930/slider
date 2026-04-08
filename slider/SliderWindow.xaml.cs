@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -14,16 +15,18 @@ namespace slider
 {
     public partial class SliderWindow : Window
     {
+
         private readonly List<PlaylistPeriod> periods;
         private List<SlideItem> currentSlides = new();
         private int currentIndex = 0;
 
         private readonly DispatcherTimer slideTimer;
         private readonly DispatcherTimer periodCheckTimer;
+        private DispatcherTimer? videoTimer;
 
         private readonly string playlistFilePath = "";
         private DateTime lastFileWriteTime = DateTime.MinValue;
-
+        private readonly Dictionary<string, BitmapImage> imageCache = new();
         public SliderWindow(List<PlaylistPeriod> playlistPeriods, string filePath)
         {
             InitializeComponent();
@@ -40,13 +43,29 @@ namespace slider
             slideTimer.Tick += SlideTimer_Tick;
 
             periodCheckTimer = new DispatcherTimer();
-            periodCheckTimer.Interval = TimeSpan.FromSeconds(1);
+            periodCheckTimer.Interval = TimeSpan.FromSeconds(10);
             periodCheckTimer.Tick += PeriodCheckTimer_Tick;
             periodCheckTimer.Start();
 
             ReloadActiveSlides(forceReload: true);
         }
 
+        private BitmapImage GetCachedImage(string path)
+        {
+            if (imageCache.TryGetValue(path, out var cached))
+                return cached;
+
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(path, UriKind.Absolute);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.DecodePixelWidth = 1920;
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            imageCache[path] = bitmap;
+            return bitmap;
+        }
 
         private void PeriodCheckTimer_Tick(object? sender, EventArgs e)
         {
@@ -117,34 +136,42 @@ namespace slider
                 currentSlides.Clear();
                 currentIndex = 0;
                 slideTimer.Stop();
+                videoTimer?.Stop();
+                SlideVideo.Stop();
+                SlideVideo.Visibility = Visibility.Collapsed;
                 SlideImage.Source = null;
+                SlideImage.Visibility = Visibility.Collapsed;
                 return;
             }
 
             bool slidesChanged =
                 forceReload ||
                 currentSlides.Count != newSlides.Count ||
-                !currentSlides.Select(s => s.ImagePath).SequenceEqual(newSlides.Select(s => s.ImagePath)) ||
+                !currentSlides.Select(s => s.Path).SequenceEqual(newSlides.Select(s => s.Path)) ||
+                !currentSlides.Select(s => s.Type).SequenceEqual(newSlides.Select(s => s.Type)) ||
                 !currentSlides.Select(s => s.DurationSeconds).SequenceEqual(newSlides.Select(s => s.DurationSeconds)) ||
-                !currentSlides.Select(s => s.TransitionEffect).SequenceEqual(newSlides.Select(s => s.TransitionEffect));
+                !currentSlides.Select(s => s.TransitionEffect).SequenceEqual(newSlides.Select(s => s.TransitionEffect)) ||
+                !currentSlides.Select(s => s.PlayFullVideo).SequenceEqual(newSlides.Select(s => s.PlayFullVideo)) ||
+                !currentSlides.Select(s => s.StartSeconds).SequenceEqual(newSlides.Select(s => s.StartSeconds)) ||
+                !currentSlides.Select(s => s.EndSeconds).SequenceEqual(newSlides.Select(s => s.EndSeconds));
 
             if (!slidesChanged)
                 return;
 
-            string? currentImagePath = null;
+            string? currentPath = null;
 
             if (currentSlides.Count > 0 &&
                 currentIndex >= 0 &&
                 currentIndex < currentSlides.Count)
             {
-                currentImagePath = currentSlides[currentIndex].ImagePath;
+                currentPath = currentSlides[currentIndex].Path;
             }
 
             currentSlides = newSlides;
 
-            if (!string.IsNullOrWhiteSpace(currentImagePath))
+            if (!string.IsNullOrWhiteSpace(currentPath))
             {
-                int foundIndex = currentSlides.FindIndex(s => s.ImagePath == currentImagePath);
+                int foundIndex = currentSlides.FindIndex(s => s.Path == currentPath);
                 currentIndex = foundIndex >= 0 ? foundIndex : 0;
             }
             else
@@ -153,14 +180,20 @@ namespace slider
             }
 
             ShowCurrentSlide();
-            RestartSlideTimer();
         }
+
+
 
         private void ShowCurrentSlide()
         {
             if (currentSlides.Count == 0)
             {
+                slideTimer.Stop();
+                videoTimer?.Stop();
+                SlideVideo.Stop();
+                SlideVideo.Visibility = Visibility.Collapsed;
                 SlideImage.Source = null;
+                SlideImage.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -168,38 +201,123 @@ namespace slider
 
             try
             {
-                string imagePath = currentSlide.ImagePath;
+                string path = currentSlide.Path;
 
-                if (!Path.IsPathRooted(imagePath) && !string.IsNullOrWhiteSpace(playlistFilePath))
+                if (!Path.IsPathRooted(path) && !string.IsNullOrWhiteSpace(playlistFilePath))
                 {
                     string baseFolder = Path.GetDirectoryName(playlistFilePath) ?? "";
-                    imagePath = Path.Combine(baseFolder, imagePath);
+                    path = Path.Combine(baseFolder, path);
                 }
 
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                bitmap.EndInit();
-                bitmap.Freeze();
-
-                string effect = currentSlide.TransitionEffect ?? "Затухание";
-
-                if (effect == "Затухание")
+                if (currentSlide.Type == MediaType.Image)
                 {
-                    FadeToImage(bitmap);
+                    videoTimer?.Stop();
+                    SlideVideo.Stop();
+                    SlideVideo.Source = null;
+                    SlideVideo.Visibility = Visibility.Collapsed;
+
+                    BitmapImage bitmap = GetCachedImage(path);
+
+                    string effect = currentSlide.TransitionEffect ?? "Затухание";
+
+                    SlideImage.Visibility = Visibility.Visible;
+
+                    if (effect == "Затухание")
+                    {
+                        FadeToImage(bitmap);
+                    }
+                    else
+                    {
+                        SlideImage.BeginAnimation(OpacityProperty, null);
+                        SlideImage.Source = bitmap;
+                        SlideImage.Opacity = 1;
+                    }
+
+                    RestartSlideTimer();
                 }
-                else
+                else if (currentSlide.Type == MediaType.Video)
                 {
-                    SlideImage.BeginAnimation(OpacityProperty, null);
-                    SlideImage.Opacity = 1;
-                    SlideImage.Source = bitmap;
+                    slideTimer.Stop();
+                    videoTimer?.Stop();
+
+                    SlideImage.Source = null;
+                    SlideImage.Visibility = Visibility.Collapsed;
+
+                    SlideVideo.Stop();
+                    SlideVideo.Source = null;
+                    SlideVideo.Visibility = Visibility.Visible;
+                    SlideVideo.Source = new Uri(path, UriKind.Absolute);
+
+                    RoutedEventHandler? openedHandler = null;
+                    openedHandler = (s, e) =>
+                    {
+                        SlideVideo.MediaOpened -= openedHandler;
+
+                        if (currentSlide.StartSeconds > 0)
+                            SlideVideo.Position = TimeSpan.FromSeconds(currentSlide.StartSeconds);
+
+                        SlideVideo.Play();
+
+                        if (!currentSlide.PlayFullVideo)
+                            StartVideoTimer(currentSlide);
+                    };
+
+                    SlideVideo.MediaOpened += openedHandler;
                 }
             }
             catch
             {
-                // не роняем слайдер из-за одного битого файла
+                ShowNextSlide();
+            }
+        }
+
+        private void EffectComboBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is ComboBox comboBox)
+            {
+                comboBox.IsDropDownOpen = true;
+                comboBox.Focus();
+            }
+        }
+
+        private void StartVideoTimer(SlideItem slide)
+        {
+            videoTimer?.Stop();
+
+            double duration = slide.EndSeconds - slide.StartSeconds;
+
+            if (duration <= 0)
+                duration = slide.DurationSeconds;
+
+            if (duration <= 0)
+                duration = 1;
+
+            videoTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(duration)
+            };
+
+            videoTimer.Tick += (s, e) =>
+            {
+                videoTimer?.Stop();
+                SlideVideo.Stop();
+                ShowNextSlide();
+            };
+
+            videoTimer.Start();
+        }
+
+
+        private void SlideVideo_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            if (currentSlides.Count == 0)
+                return;
+
+            SlideItem currentSlide = currentSlides[currentIndex];
+
+            if (currentSlide.Type == MediaType.Video && currentSlide.PlayFullVideo)
+            {
+                ShowNextSlide();
             }
         }
 
@@ -245,13 +363,15 @@ namespace slider
             if (currentSlides.Count == 0)
                 return;
 
+            videoTimer?.Stop();
+            SlideVideo.Stop();
+
             currentIndex--;
 
             if (currentIndex < 0)
                 currentIndex = currentSlides.Count - 1;
 
             ShowCurrentSlide();
-            RestartSlideTimer();
         }
 
         private void SlideTimer_Tick(object? sender, EventArgs e)
@@ -262,13 +382,7 @@ namespace slider
                 return;
             }
 
-            currentIndex++;
-
-            if (currentIndex >= currentSlides.Count)
-                currentIndex = 0;
-
-            ShowCurrentSlide();
-            RestartSlideTimer();
+            ShowNextSlide();
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -339,18 +453,26 @@ namespace slider
             if (currentSlides.Count == 0)
                 return;
 
+            videoTimer?.Stop();
+            SlideVideo.Stop();
+
             currentIndex++;
 
             if (currentIndex >= currentSlides.Count)
                 currentIndex = 0;
 
             ShowCurrentSlide();
-            RestartSlideTimer();
         }
 
         private void RestartSlideTimer()
         {
             if (currentSlides.Count == 0)
+            {
+                slideTimer.Stop();
+                return;
+            }
+
+            if (currentSlides[currentIndex].Type == MediaType.Video)
             {
                 slideTimer.Stop();
                 return;

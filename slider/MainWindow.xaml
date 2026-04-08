@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:slider"
+        xmlns:models="clr-namespace:slider.Models"
         mc:Ignorable="d"
         Icon="/app.ico"
         Title="Конфигуратор"
@@ -12,7 +13,7 @@
         MinHeight="760"
         MinWidth="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#1c1c1c">
+        Background="#1e1a1a">
 
     <Window.Resources>
         <SolidColorBrush x:Key="BtnPrimaryBrush" Color="#5A5A5A"/>
@@ -69,6 +70,109 @@
                     <Setter Property="Opacity" Value="1"/>
                 </DataTrigger>
             </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DarkEffectComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="Background" Value="#2B2B2B"/>
+            <Setter Property="BorderBrush" Value="#5A5A5A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="8,0,0,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="MainBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="28"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter Grid.Column="0"
+                                              Margin="8,0,0,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+
+                                    <Border Grid.Column="1"
+                                    Background="#3A3A3A"
+                                    BorderBrush="#5A5A5A"
+                                    BorderThickness="1,0,0,0">
+                                        <TextBlock Text="▼"
+                                           Foreground="#EAEAEA"
+                                           FontSize="10"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <Popup x:Name="Popup"
+                           Placement="Bottom"
+                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                           AllowsTransparency="True"
+                           Focusable="False"
+                           PopupAnimation="Fade">
+                                <Border Margin="0,4,0,0"
+                                Background="#2B2B2B"
+                                BorderBrush="#5A5A5A"
+                                BorderThickness="1">
+                                    <ScrollViewer>
+                                        <StackPanel IsItemsHost="True"
+                                            KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MainBorder" Property="BorderBrush" Value="#777777"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="MainBorder" Property="BorderBrush" Value="#777777"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.65"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="Background" Value="#2B2B2B"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                        Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                      HorizontalAlignment="Left"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#404040"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#5A5A5A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="AddPeriodButtonStyle" TargetType="Button">
@@ -193,7 +297,7 @@
             <Setter Property="Foreground" Value="#F0F0F0"/>
             <Setter Property="Background">
                 <Setter.Value>
-                    <SolidColorBrush Color="#5A6478"/>
+                    <SolidColorBrush Color="#1c1c1c"/>
                 </Setter.Value>
             </Setter>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -221,7 +325,7 @@
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetName="Root"
                                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                    To="#68748B"
+                                                    To="#533232"
                                                     Duration="0:0:0.15"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -231,7 +335,7 @@
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetName="Root"
                                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                    To="#5A6478"
+                                                    To="#1c1c1c"        
                                                     Duration="0:0:0.15"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -489,34 +593,111 @@
             <Setter Property="CaretBrush" Value="White"/>
         </Style>
 
-        <Style x:Key="DarkDatePickerStyle" TargetType="DatePicker">
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Foreground" Value="#F0F0F0"/>
+        <Style x:Key="DarkDatePickerStyle" TargetType="{x:Type DatePicker}">
+            <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="Background" Value="#2B2B2B"/>
             <Setter Property="BorderBrush" Value="#5A5A5A"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DatePicker}">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="28"/>
+                                </Grid.ColumnDefinitions>
+
+                                <DatePickerTextBox x:Name="PART_TextBox"
+                                           Grid.Column="0"
+                                           Background="Transparent"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           BorderThickness="0"
+                                           FocusVisualStyle="{x:Null}"
+                                           Padding="8,0,0,0"
+                                           VerticalContentAlignment="Center"
+                                           HorizontalContentAlignment="Left"/>
+
+                                <Button x:Name="PART_Button"
+        Grid.Column="1"
+        Focusable="False"
+        Background="#2B2B2B"
+        BorderBrush="#5A5A5A"
+        BorderThickness="1,0,0,0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                <TextBlock Text=""
+                           FontFamily="Segoe MDL2 Assets"
+                           Foreground="#EAEAEA"
+                           FontSize="14"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <Popup x:Name="PART_Popup"
+                               Placement="Bottom"
+                               StaysOpen="False"
+                               AllowsTransparency="True">
+                                    <Border Background="#2B2B2B"
+                                    BorderBrush="#5A5A5A"
+                                    BorderThickness="1">
+                                        <Calendar x:Name="PART_Calendar"
+                                          Background="#2B2B2B"
+                                          Foreground="#EAEAEA"/>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style TargetType="DatePickerTextBox">
-            <Setter Property="Foreground" Value="#F0F0F0"/>
-            <Setter Property="Background" Value="#2B2B2B"/>
+        <Style TargetType="{x:Type DatePickerTextBox}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="2,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="8,0,0,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DatePickerTextBox}">
+                        <Border Background="Transparent"
+                        BorderThickness="0">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                  VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+
 
 
         <Style x:Key="PlaylistRowStyle" TargetType="DataGridRow">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="MinHeight" Value="40"/>
+
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#3A3A3A"/>
+                    <Setter Property="Background" Value="#404040"/>
+                    <Setter Property="Foreground" Value="White"/>
                 </Trigger>
 
                 <Trigger Property="IsSelected" Value="True">
@@ -530,6 +711,7 @@
                         <Condition Property="Selector.IsSelectionActive" Value="False"/>
                     </MultiTrigger.Conditions>
                     <Setter Property="Background" Value="#5A5A5A"/>
+                    <Setter Property="Foreground" Value="White"/>
                 </MultiTrigger>
             </Style.Triggers>
         </Style>
@@ -558,7 +740,7 @@
             <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="Background">
                 <Setter.Value>
-                    <SolidColorBrush Color="#4A5568"/>
+                    <SolidColorBrush Color="#FF1c1c1c"/>
                 </Setter.Value>
             </Setter>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -582,7 +764,7 @@
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetName="Root"
                                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                    To="#5B6778"
+                                                    To="#ff533232"
                                                     Duration="0:0:0.18"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -592,7 +774,7 @@
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetName="Root"
                                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                    To="#4A5568"
+                                                    To="#FF1c1c1c"
                                                     Duration="0:0:0.18"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -602,7 +784,7 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Root" Property="Background">
                                     <Setter.Value>
-                                        <SolidColorBrush Color="#3F4958"/>
+                                        <SolidColorBrush Color="#FF1c1c1c"/>
                                     </Setter.Value>
                                 </Setter>
                             </Trigger>
@@ -840,12 +1022,15 @@
 
         <Style TargetType="DataGrid">
             <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="RowHeight" Value="40"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
             <Setter Property="RowBackground" Value="{StaticResource InputBrush}"/>
             <Setter Property="AlternatingRowBackground" Value="#0c0c0c"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
             <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="SelectionUnit" Value="FullRow"/>
+            <Setter Property="SelectionMode" Value="Single"/>
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
@@ -879,7 +1064,7 @@
 
             <!-- Левая панель -->
             <Border Grid.Column="0"
-        Background="#3B3B3B"
+        Background="#FF282828"
         CornerRadius="14"
         Padding="18"
         Margin="0">
@@ -895,8 +1080,8 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="10"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="1"/>
-                        <RowDefinition Height="175"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="185"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
@@ -1061,6 +1246,7 @@
                                HorizontalAlignment="Center"/>
                                 <DatePicker x:Name="StartDatePicker"
                                 SelectedDateFormat="Short"
+                                FocusVisualStyle="{x:Null}"
                                 Style="{StaticResource DarkDatePickerStyle}" Width="165"/>
                             </StackPanel>
 
@@ -1110,6 +1296,7 @@
                                HorizontalAlignment="Center"/>
                                 <DatePicker x:Name="EndDatePicker"
                                 SelectedDateFormat="Short"
+                                FocusVisualStyle="{x:Null}"
                                 Style="{StaticResource DarkDatePickerStyle}" Width="165"/>
                             </StackPanel>
 
@@ -1143,7 +1330,7 @@
                         <Button x:Name="ApplyPeriodSettingsButton"
         Content="ПРИМЕНИТЬ"
         Style="{StaticResource ApplyPeriodButtonStyle}"
-        Click="ApplyPeriodSettingsButton_Click" Height="38"/>
+        Click="ApplyPeriodSettingsButton_Click" Height="36"/>
 
                         <TextBox x:Name="PeriodNameTextBox"
                      Visibility="Collapsed"/>
@@ -1153,9 +1340,9 @@
             </Border>
 
 
-            <!-- Новый центральный блок -->
+            <!-- центральный блок -->
             <Border Grid.Column="2"
-        Background="#3B3B3B"
+        Background="#FF282828"
         CornerRadius="14"
         Padding="16" Grid.ColumnSpan="3" Margin="0,0,10,0">
                 <Grid>
@@ -1211,9 +1398,9 @@
                             <!-- Шапка -->
                             <Grid Grid.Row="0" Margin="6,0,6,0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="430"/>
+                                    <ColumnDefinition Width="310"/>
+                                    <ColumnDefinition Width="210"/>
                                     <ColumnDefinition Width="40"/>
                                 </Grid.ColumnDefinitions>
 
@@ -1265,61 +1452,107 @@
                                 <DataGrid x:Name="ImagesDataGrid"
                                                   Background="Transparent"
                                                   BorderThickness="0"
-                                                  HeadersVisibility="None"
+                                                  HeadersVisibility="Column"
+                                                  SelectionUnit="FullRow"
+                                                  RowHeight="40"
                                                   GridLinesVisibility="None"
                                                   AutoGenerateColumns="False"
                                                   CanUserAddRows="False"
                                                   CanUserDeleteRows="False"
                                                   SelectionMode="Single"
                                                   RowStyle="{StaticResource PlaylistRowStyle}"
-                                                  SelectionChanged="ImagesDataGrid_SelectionChanged"
-                                                  MouseDoubleClick="ImagesDataGrid_MouseDoubleClick"
-                                                  PreviewMouseLeftButtonDown="ImagesDataGrid_PreviewMouseLeftButtonDown"
                                                   MouseMove="ImagesDataGrid_MouseMove"
                                                   DragOver="ImagesDataGrid_DragOver"
                                                   DragLeave="ImagesDataGrid_DragLeave"
                                                   Drop="ImagesDataGrid_Drop"
                                                   AllowDrop="True"
-                                                    RowEditEnding="ImagesDataGrid_RowEditEnding">
+                                                  RowEditEnding="ImagesDataGrid_RowEditEnding"
+                                                  BeginningEdit="ImagesDataGrid_BeginningEdit"
+                                                  PreviewMouseLeftButtonDown="ImagesDataGrid_PreviewMouseLeftButtonDown"
+                                                  SelectionChanged="ImagesDataGrid_SelectionChanged">
                                     <DataGrid.Resources>
                                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#5A5A5A"/>
                                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#5A5A5A"/>
                                     </DataGrid.Resources>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                        </Style>
+                                    </DataGrid.CellStyle>
                                     <DataGrid.Columns>
+
+                                        <!-- Тип -->
+                                        <DataGridTextColumn Header="ТИП"
+                        Binding="{Binding Type}"
+                        Width="90"
+                        IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                    <Setter Property="FontSize" Value="14"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    <Setter Property="TextAlignment" Value="Center"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                    <Setter Property="Margin" Value="0"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
 
                                         <!-- Имя файла -->
                                         <DataGridTextColumn Header="ИМЯ ФАЙЛА"
-                                        Binding="{Binding FileName}"
-                                        Width="*"
-                                        IsReadOnly="True">
+                        Binding="{Binding FileName}"
+                        Width="*"
+                        IsReadOnly="True">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Foreground" Value="#EAEAEA"/>
                                                     <Setter Property="FontSize" Value="14"/>
                                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                                     <Setter Property="Margin" Value="10,0,0,0"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                    
+
                                                 </Style>
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
-                                        
 
                                         <!-- Длительность -->
-                                        <DataGridTemplateColumn Header="ДЛИТЕЛЬНОСТЬ (СЕК)" Width="150">
+                                        <DataGridTemplateColumn Header="ДЛИТ. (СЕК)" Width="110">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding DurationSeconds}"
-                       Foreground="#EAEAEA"
-                       FontSize="14"
+                                                    <TextBlock FontSize="14"
                        HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
                        TextAlignment="Center"
-                       VerticalAlignment="Center"/>
+                       Margin="0">                                 
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                                <Setter Property="Text" Value="{Binding DurationSeconds}"/>
+
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding Type}" Value="{x:Static models:MediaType.Video}"/>
+                                                                            <Condition Binding="{Binding PlayFullVideo}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="Foreground" Value="#777777"/>
+                                                                        <Setter Property="Text" Value="FULL"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
 
                                             <DataGridTemplateColumn.CellEditingTemplate>
                                                 <DataTemplate>
                                                     <TextBox Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                     Foreground="#EAEAEA"
                      Background="#2B2B2B"
                      BorderBrush="#5A5A5A"
                      BorderThickness="1"
@@ -1327,23 +1560,213 @@
                      HorizontalContentAlignment="Center"
                      VerticalContentAlignment="Center"
                      CaretBrush="White"
-                     PreviewTextInput="DurationEditingTextBox_PreviewTextInput"/>
+                     PreviewTextInput="DurationEditingTextBox_PreviewTextInput">
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                                <Setter Property="IsEnabled" Value="True"/>
+
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding Type}" Value="{x:Static models:MediaType.Video}"/>
+                                                                            <Condition Binding="{Binding PlayFullVideo}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                                        <Setter Property="Foreground" Value="#777777"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellEditingTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- Эффект -->
-                                        <DataGridTemplateColumn Header="ЭФФЕКТ ПЕРЕХОДА" Width="200">
+                                        <!-- Старт видео -->
+                                        <DataGridTemplateColumn Header="START" Width="80">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding TransitionEffect}"
-                                           Foreground="#EAEAEA"
-                                           FontSize="14"
-                                           HorizontalAlignment="Center"
-                                           TextAlignment="Center"
-                                           VerticalAlignment="Center"/>
+                                                    <TextBlock FontSize="14"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       Text="{Binding StartSeconds}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding Type}" Value="{x:Static models:MediaType.Video}"/>
+                                                                            <Condition Binding="{Binding PlayFullVideo}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="Foreground" Value="#777777"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
+
+                                            <DataGridTemplateColumn.CellEditingTemplate>
+                                                <DataTemplate>
+                                                    <TextBox Text="{Binding StartSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                     Background="#2B2B2B"
+                     BorderBrush="#5A5A5A"
+                     BorderThickness="1"
+                     FontSize="14"
+                     HorizontalContentAlignment="Center"
+                     VerticalContentAlignment="Center"
+                     CaretBrush="White">
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                                <Setter Property="IsEnabled" Value="True"/>
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding Type}" Value="{x:Static models:MediaType.Video}"/>
+                                                                            <Condition Binding="{Binding PlayFullVideo}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                                        <Setter Property="Foreground" Value="#777777"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellEditingTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Конец видео -->
+                                        <DataGridTemplateColumn Header="END" Width="80">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock FontSize="14"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       Text="{Binding EndSeconds}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding Type}" Value="{x:Static models:MediaType.Video}"/>
+                                                                            <Condition Binding="{Binding PlayFullVideo}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="Foreground" Value="#777777"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+
+                                            <DataGridTemplateColumn.CellEditingTemplate>
+                                                <DataTemplate>
+                                                    <TextBox Text="{Binding EndSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                     Background="#2B2B2B"
+                     BorderBrush="#5A5A5A"
+                     BorderThickness="1"
+                     FontSize="14"
+                     HorizontalContentAlignment="Center"
+                     VerticalContentAlignment="Center"
+                     CaretBrush="White">
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Foreground" Value="#EAEAEA"/>
+                                                                <Setter Property="IsEnabled" Value="True"/>
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding Type}" Value="{x:Static models:MediaType.Video}"/>
+                                                                            <Condition Binding="{Binding PlayFullVideo}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                                        <Setter Property="Foreground" Value="#777777"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellEditingTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Полное воспроизведение -->
+                                        <DataGridCheckBoxColumn Header="FULL"
+                        Binding="{Binding PlayFullVideo, Mode=TwoWay}"
+                        Width="70">
+                                            <DataGridCheckBoxColumn.ElementStyle>
+                                                <Style TargetType="CheckBox">
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                </Style>
+                                            </DataGridCheckBoxColumn.ElementStyle>
+
+                                            <DataGridCheckBoxColumn.EditingElementStyle>
+                                                <Style TargetType="CheckBox">
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                </Style>
+                                            </DataGridCheckBoxColumn.EditingElementStyle>
+                                        </DataGridCheckBoxColumn>
+
+                                        <!-- Эффект -->
+                                        <DataGridTemplateColumn Header="ЭФФЕКТ" Width="170">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="28"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Text="{Binding TransitionEffect}"
+                           Foreground="#EAEAEA"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"/>
+
+                                                        <Border x:Name="ArrowHost"
+                        Grid.Column="1"
+                        Background="Transparent"
+                        Visibility="Collapsed">
+                                                            <TextBlock Text="▼"
+                               Foreground="#A0A0A0"
+                               FontSize="10"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <DataTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridCell}, Path=IsMouseOver}" Value="True">
+                                                            <Setter TargetName="ArrowHost" Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+
+                                            <DataGridTemplateColumn.CellEditingTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox SelectedValue="{Binding TransitionEffect, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      SelectedValuePath="Content"
+                      Style="{StaticResource DarkEffectComboBoxStyle}">
+
+
+                                                        <ComboBoxItem Content="Затухание"/>
+                                                        <ComboBoxItem Content="Без перехода"/>
+                                                    </ComboBox>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellEditingTemplate>
                                         </DataGridTemplateColumn>
 
                                         <!-- Удаление -->
@@ -1351,13 +1774,13 @@
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Button x:Name="DeleteImageRowButton"
-                                        Content="×"
-                                        Width="24"
-                                        Height="24"
-                                        FontSize="16"
-                                        FontWeight="Bold"
-                                        Style="{StaticResource DeleteRowButtonStyle}"
-                                        Click="DeleteImageRowButton_Click"/>
+                        Content="×"
+                        Width="40"
+                        Height="30"
+                        FontSize="22"
+                        FontWeight="Bold"
+                        Style="{StaticResource DeleteRowButtonStyle}"
+                        Click="DeleteImageRowButton_Click"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
@@ -1371,11 +1794,10 @@
                     <!-- Нижние кнопки -->
                     <UniformGrid Grid.Row="4" Columns="6" Margin="0">
                         <Button x:Name="AddImagesButton"
-                    Content="+ ФОТО"
+                    Content="+ МЕДИА"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Margin="0,0,10,0"
-                    Click="AddImagesButton_Click"/>
-
+                    Click="AddImagesButton_Click" />
                         <Button x:Name="OpenLastPlaylistButton"
                     Content="ПОСЛЕДНИЙ"
                     Style="{StaticResource SecondaryButtonStyle}"

@@ -1,54 +1,70 @@
 ﻿using Microsoft.Win32;
+using slider.Models;
+using slider.Services;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using System.Windows.Input;
-using System.IO;
-using slider.Services;
-using slider.Models;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 
 namespace slider
 {
     public partial class MainWindow : Window
     {
+        private const string DefaultTransitionEffect = "Затухание";
         private List<PlaylistPeriod> periods = new List<PlaylistPeriod>();
         private PlaylistPeriod? selectedPeriod = null;
         private Point _dragStartPoint;
         private SlideItem? _draggedSlideItem;
         private DispatcherTimer? autoSaveDelayTimer;
         private bool isLoadingPlaylist = false;
-        private string playlistFilePath = "";
-        private DateTime lastFileWriteTime = DateTime.MinValue;
         private SliderWindow? sliderWindow = null;
+        private readonly FfmpegOutputService ffmpegOutputService = new();
+        private readonly DispatcherTimer ffmpegPlaybackTimer = new();
+        private List<SlideItem> ffmpegSlides = new();
+        private StreamSettings currentStreamSettings = new StreamSettings();
+        private const int DefaultSlideDurationSeconds = 5;
+        private const int DefaultAutoSaveMinutes = 5;
+        private const string DefaultPeriodName = "Новый период";
+        private const string SelectPeriodFirstMessage = "Сначала выбери период";
+        private const string SelectImageFirstMessage = "Сначала выбери изображение";
+        private const string ConfirmDeleteTitle = "Подтверждение";
+        private readonly Dictionary<string, BitmapImage> imageCache = new();
         public MainWindow()
         {
             InitializeComponent();
             InitializeAutoSaveDelayTimer();
             InitializeDefaultPeriods();
             RefreshPeriodsList();
-            RefreshImagesGrid();
+            RefreshMediaGrid();
             UpdateStatus();
 
+           
+
         }
+
+
 
         // =========================
         // ИНИЦИАЛИЗАЦИЯ
         // =========================
 
-        private string currentPlaylistFilePath = "";
+
         private readonly string lastPlaylistInfoFile =
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "last_playlist.txt");
         private PlaylistData BuildPlaylistData()
         {
-            int autoSaveMinutes = 5;
-            int.TryParse(AutoSaveMinutesTextBox.Text, out autoSaveMinutes);
+            int autoSaveMinutes = int.TryParse(AutoSaveMinutesTextBox.Text, out int parsedMinutes)
+            ? parsedMinutes
+            : DefaultAutoSaveMinutes;
+
             if (autoSaveMinutes <= 0)
-                autoSaveMinutes = 5;
+                autoSaveMinutes = DefaultAutoSaveMinutes;
 
             return new PlaylistData
             {
@@ -58,6 +74,8 @@ namespace slider
                 Periods = periods
             };
         }
+
+
 
         private void InitializeAutoSaveDelayTimer()
         {
@@ -102,6 +120,18 @@ namespace slider
             e.Handled = true;
         }
 
+        private void LoadPlaylistFromFile(string filePath, bool saveAsLast)
+        {
+            var data = PlaylistFileService.Load(filePath);
+
+            PlaylistPathTextBox.Text = filePath;
+
+            ApplyPlaylistData(data);
+
+            if (saveAsLast)
+                SaveLastPlaylistPath(filePath);
+        }
+
         private void PeriodNameEditTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (sender is not TextBox textBox)
@@ -135,7 +165,7 @@ namespace slider
             string newName = textBox.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(newName))
-                newName = "Новый период";
+                newName = DefaultPeriodName;
 
             period.Name = newName;
 
@@ -152,8 +182,7 @@ namespace slider
                     editBox.Visibility = Visibility.Collapsed;
             }
 
-            RefreshPeriodsList();
-            RefreshPeriodEditor();
+            RefreshPeriodUi();
             UpdateStatus("Имя периода изменено");
             ScheduleAutoSave();
         }
@@ -208,7 +237,6 @@ namespace slider
                 var data = BuildPlaylistData();
                 PlaylistFileService.Save(filePath, data);
 
-                currentPlaylistFilePath = filePath;
                 SaveLastPlaylistPath(filePath);
 
                 StatusTextBlock.Text = "Автосохранение выполнено";
@@ -308,10 +336,7 @@ namespace slider
                 PlaylistPathTextBox.Text = data.PlaylistPath ?? "";
                 AutoSaveCheckBox.IsChecked = data.AutoSaveEnabled;
                 AutoSaveMinutesTextBox.Text = data.AutoSaveMinutes.ToString();
-
-                RefreshPeriodsList();
-                RefreshPeriodEditor();
-                RefreshImagesGrid();
+                RefreshPeriodUi();
                 ClearSelectedImageEditor();
                 UpdateStatus("Плейлист загружен");
             }
@@ -325,21 +350,32 @@ namespace slider
 
         private void ImagesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (sender is not DataGrid dataGrid)
+                return;
+
             _dragStartPoint = e.GetPosition(null);
 
-            if (sender is DataGrid dataGrid)
+            DependencyObject? source = e.OriginalSource as DependencyObject;
+
+            var row = FindParent<DataGridRow>(source);
+            var cell = FindParent<DataGridCell>(source);
+
+            if (row?.Item is SlideItem slideItem)
             {
-                var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
-                if (row?.Item is SlideItem slideItem)
-                {
-                    _draggedSlideItem = slideItem;
-                }
-                else
-                {
-                    _draggedSlideItem = null;
-                }
+                _draggedSlideItem = slideItem;
+                return;
+            }
+
+            _draggedSlideItem = null;
+
+            if (row == null && cell == null)
+            {
+                dataGrid.UnselectAll();
+                dataGrid.SelectedItem = null;
+                ClearSelectedImageEditor();
             }
         }
+
 
         private void ImagesDataGrid_MouseMove(object sender, MouseEventArgs e)
         {
@@ -366,11 +402,7 @@ namespace slider
 
             e.Effects = DragDropEffects.Move;
 
-            if (_lastHighlightedRow != null)
-            {
-                _lastHighlightedRow.Background = System.Windows.Media.Brushes.Transparent;
-                _lastHighlightedRow = null;
-            }
+            ClearDragHighlight();
 
             var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
             if (row != null)
@@ -400,13 +432,10 @@ namespace slider
 
         private void ImagesDataGrid_Drop(object sender, DragEventArgs e)
         {
-            if (_lastHighlightedRow != null)
-            {
-                _lastHighlightedRow.ClearValue(DataGridRow.BackgroundProperty);
-                _lastHighlightedRow = null;
-            }
 
-            if (selectedPeriod == null)
+                ClearDragHighlight();
+
+            if (selectedPeriod is not { } period)
                 return;
 
             if (!e.Data.GetDataPresent(typeof(SlideItem)))
@@ -422,16 +451,16 @@ namespace slider
             if (targetItem == null || ReferenceEquals(droppedData, targetItem))
                 return;
 
-            int oldIndex = selectedPeriod.Slides.IndexOf(droppedData);
-            int newIndex = selectedPeriod.Slides.IndexOf(targetItem);
+            int oldIndex = period.Slides.IndexOf(droppedData);
+            int newIndex = period.Slides.IndexOf(targetItem);
 
             if (oldIndex < 0 || newIndex < 0)
                 return;
 
-            selectedPeriod.Slides.RemoveAt(oldIndex);
-            selectedPeriod.Slides.Insert(newIndex, droppedData);
+            period.Slides.RemoveAt(oldIndex);
+            period.Slides.Insert(newIndex, droppedData);
 
-            RefreshImagesGrid();
+            RefreshMediaGrid();
             ImagesDataGrid.SelectedItem = droppedData;
             UpdateStatus("Порядок изображений изменён");
             ScheduleAutoSave();
@@ -470,11 +499,7 @@ namespace slider
 
         private void ImagesDataGrid_DragLeave(object sender, DragEventArgs e)
         {
-            if (_lastHighlightedRow != null)
-            {
-                _lastHighlightedRow.ClearValue(DataGridRow.BackgroundProperty);
-                _lastHighlightedRow = null;
-            }
+                ClearDragHighlight();
         }
 
         private void SaveLastPlaylistPath(string filePath)
@@ -512,16 +537,14 @@ namespace slider
             if ((sender as FrameworkElement)?.DataContext is PlaylistPeriod period)
             {
                 if (MessageBox.Show($"Удалить период \"{period.Name}\"?",
-                    "Подтверждение",
+                    ConfirmDeleteTitle,
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     periods.Remove(period);
                     selectedPeriod = periods.FirstOrDefault();
 
-                    RefreshPeriodsList();
-                    RefreshPeriodEditor();
-                    RefreshImagesGrid();
+                    RefreshPeriodUi();
                     ClearSelectedImageEditor();
 
                     UpdateStatus("Период удалён");
@@ -532,9 +555,9 @@ namespace slider
 
         private void ApplyPeriodSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (selectedPeriod == null)
+            if (selectedPeriod is not { } period)
             {
-                MessageBox.Show("Сначала выбери период");
+                MessageBox.Show(SelectPeriodFirstMessage);
                 return;
             }
 
@@ -596,9 +619,9 @@ namespace slider
                 return;
             }
 
-            selectedPeriod.Name = name;
-            selectedPeriod.StartDateTime = start;
-            selectedPeriod.EndDateTime = end;
+            period.Name = name;
+            period.StartDateTime = start;
+            period.EndDateTime = end;
 
             RefreshPeriodsList();
             RefreshPeriodEditor();
@@ -614,16 +637,9 @@ namespace slider
 
         private void DeleteImageRowButton_Click(object sender, RoutedEventArgs e)
         {
-            if (selectedPeriod == null)
-                return;
-
-            if ((sender as FrameworkElement)?.DataContext is SlideItem selectedSlide)
+            if ((sender as FrameworkElement)?.DataContext is SlideItem slide)
             {
-                selectedPeriod.Slides.Remove(selectedSlide);
-                RefreshImagesGrid();
-                ClearSelectedImageEditor();
-                UpdateStatus("Изображение удалено");
-                ScheduleAutoSave();
+                RemoveSlide(slide);
             }
         }
 
@@ -651,7 +667,7 @@ namespace slider
             {
                 var defaultPeriod = new PlaylistPeriod
                 {
-                    Name = "Новый период",
+                    Name = DefaultPeriodName,
                     StartDateTime = DateTime.Today,
                     EndDateTime = DateTime.Today.AddDays(1)
                 };
@@ -660,10 +676,6 @@ namespace slider
                 selectedPeriod = defaultPeriod;
             }
         }
-
-        // =========================
-        // ВЕРХНЯЯ ПАНЕЛЬ
-        // =========================
 
         private void OpenLastPlaylistButton_Click(object sender, RoutedEventArgs e)
         {
@@ -677,13 +689,7 @@ namespace slider
                     return;
                 }
 
-                var data = PlaylistFileService.Load(lastPath);
-
-                currentPlaylistFilePath = lastPath;
-                PlaylistPathTextBox.Text = lastPath;
-
-                ApplyPlaylistData(data);
-
+                LoadPlaylistFromFile(lastPath, false);
             }
             catch (Exception ex)
             {
@@ -704,14 +710,7 @@ namespace slider
 
             try
             {
-                var data = PlaylistFileService.Load(dialog.FileName);
-
-                currentPlaylistFilePath = dialog.FileName;
-                PlaylistPathTextBox.Text = dialog.FileName;
-
-                ApplyPlaylistData(data);
-                SaveLastPlaylistPath(dialog.FileName);
-
+                LoadPlaylistFromFile(dialog.FileName, true);
                 MessageBox.Show("Плейлист успешно загружен.");
             }
             catch (Exception ex)
@@ -732,19 +731,9 @@ namespace slider
         }
         private void CommitAllEdits()
         {
-            try
-            {
-                Keyboard.ClearFocus();
-
-                if (ImagesDataGrid != null)
-                {
-                    ImagesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
-                    ImagesDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
-                }
-            }
-            catch
-            {
-            }
+            Keyboard.ClearFocus();
+            ImagesDataGrid?.CommitEdit(DataGridEditingUnit.Cell, true);
+            ImagesDataGrid?.CommitEdit(DataGridEditingUnit.Row, true);
         }
         private void SavePlaylistButton_Click(object sender, RoutedEventArgs e)
         {
@@ -774,7 +763,6 @@ namespace slider
                 var data = BuildPlaylistData();
                 PlaylistFileService.Save(filePath, data);
 
-                currentPlaylistFilePath = filePath;
                 SaveLastPlaylistPath(filePath);
 
                 RefreshPlaylistHeader();
@@ -800,19 +788,8 @@ namespace slider
                 return;
             }
 
-            if (sliderWindow != null)
-            {
-                try
-                {
-                    sliderWindow.Close();
-                }
-                catch
-                {
-                }
-
-                sliderWindow = null;
-            }
-
+            sliderWindow?.Close();
+            sliderWindow = null;
             sliderWindow = new SliderWindow(periods, PlaylistPathTextBox.Text);
             sliderWindow.Closed += SliderWindow_Closed;
             sliderWindow.Show();
@@ -835,9 +812,9 @@ namespace slider
             {
                 selectedPeriod = period;
                 RefreshPeriodEditor();
-                RefreshImagesGrid();
+                RefreshMediaGrid();
                 UpdateStatus();
-                UpdateStatus();
+
             }
         }
 
@@ -855,11 +832,47 @@ namespace slider
             periods.Add(newPeriod);
             selectedPeriod = newPeriod;
 
-            RefreshPeriodsList();
-            RefreshPeriodEditor();
-            RefreshImagesGrid();
+            RefreshPeriodUi();
             UpdateStatus("Добавлен новый период");
             ScheduleAutoSave();
+        }
+
+        private void ImagesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            if (e.Column.Header?.ToString() == "ЭФФЕКТ")
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (e.Column.GetCellContent(e.Row)?.Parent is DataGridCell cell)
+                    {
+                        var comboBox = FindVisualChild<ComboBox>(cell);
+                        if (comboBox != null)
+                        {
+                            comboBox.Focus();
+                            comboBox.IsDropDownOpen = true;
+                        }
+                    }
+                }), DispatcherPriority.Background);
+            }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
+
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T result)
+                    return result;
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                    return descendant;
+            }
+
+            return null;
         }
 
         // =========================
@@ -868,16 +881,16 @@ namespace slider
 
         private void AddImagesButton_Click(object sender, RoutedEventArgs e)
         {
-            if (selectedPeriod == null)
+            if (selectedPeriod is not { } period)
             {
-                MessageBox.Show("Сначала выбери период");
+                MessageBox.Show(SelectPeriodFirstMessage);
                 return;
             }
 
             OpenFileDialog dialog = new OpenFileDialog
             {
                 Title = "Выберите изображения",
-                Filter = "Изображения|*.jpg;*.jpeg;*.png;*.bmp",
+                Filter = "Медиафайлы|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.avi;*.mov;*.mkv;*.wmv|Изображения|*.jpg;*.jpeg;*.png;*.bmp|Видео|*.mp4;*.avi;*.mov;*.mkv;*.wmv",
                 Multiselect = true
             };
 
@@ -885,33 +898,29 @@ namespace slider
             {
                 foreach (var file in dialog.FileNames)
                 {
-                    selectedPeriod.Slides.Add(new SlideItem
-                    {
-                        FileName = System.IO.Path.GetFileName(file),
-                        ImagePath = file,
-                        DurationSeconds = 5,
-                        TransitionEffect = "Затухание"
-                    });
+                    AddMediaToSelectedPeriod(file);
                 }
 
-                RefreshImagesGrid();
-                UpdateStatus("Изображения добавлены");
+                RefreshMediaGrid();
+                UpdateStatus("Медиа добавлены");
                 ScheduleAutoSave();
             }
         }
 
         private void RemoveSelectedImageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (selectedPeriod == null)
-                return;
-
-            if (ImagesDataGrid.SelectedItem is SlideItem selectedSlide)
+            if (ImagesDataGrid.SelectedItem is SlideItem slide)
             {
-                selectedPeriod.Slides.Remove(selectedSlide);
-                RefreshImagesGrid();
-                ClearSelectedImageEditor();
-                UpdateStatus("Изображение удалено");
-                ScheduleAutoSave();
+                RemoveSlide(slide);
+            }
+        }
+
+        private void ClearDragHighlight()
+        {
+            if (_lastHighlightedRow != null)
+            {
+                _lastHighlightedRow.ClearValue(DataGridRow.BackgroundProperty);
+                _lastHighlightedRow = null;
             }
         }
 
@@ -919,10 +928,25 @@ namespace slider
         {
             if (e.Row.Item is SlideItem slide)
             {
-                if (slide.DurationSeconds <= 0)
-                    slide.DurationSeconds = 5;
+                if (slide.Type == MediaType.Image)
+                {
+                    if (slide.DurationSeconds <= 0)
+                        slide.DurationSeconds = DefaultSlideDurationSeconds;
+                }
+                else if (slide.Type == MediaType.Video)
+                {
+                    if (slide.PlayFullVideo)
+                    {
+                        slide.DurationSeconds = 0;
+                    }
+                    else
+                    {
+                        if (slide.DurationSeconds < 0)
+                            slide.DurationSeconds = 0;
+                    }
+                }
 
-                UpdateStatus("Длительность обновлена");
+                UpdateStatus("Параметры элемента обновлены");
                 ScheduleAutoSave();
             }
         }
@@ -937,7 +961,7 @@ namespace slider
         {
             if (ImagesDataGrid.SelectedItem is SlideItem selectedSlide)
             {
-                SelectedImagePathTextBox.Text = selectedSlide.ImagePath;
+                SelectedImagePathTextBox.Text = selectedSlide.Path;
                 DurationTextBox.Text = selectedSlide.DurationSeconds.ToString();
 
                 foreach (ComboBoxItem item in TransitionEffectComboBox.Items)
@@ -951,17 +975,24 @@ namespace slider
             }
         }
 
-        private void ImagesDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (ImagesDataGrid.SelectedItem is SlideItem selectedSlide)
-            {
-                
-            }
-        }
+
 
         // =========================
         // DRAG & DROP
         // =========================
+
+        private void RemoveSlide(SlideItem slide)
+        {
+            if (selectedPeriod is not { } period)
+                return;
+
+            period.Slides.Remove(slide);
+
+            RefreshMediaGrid();
+            ClearSelectedImageEditor();
+            UpdateStatus("Изображение удалено");
+            ScheduleAutoSave();
+        }
 
         private void DropZone_DragEnter(object sender, DragEventArgs e)
         {
@@ -985,9 +1016,9 @@ namespace slider
 
         private void DropZone_Drop(object sender, DragEventArgs e)
         {
-            if (selectedPeriod == null)
+            if (selectedPeriod is not { })
             {
-                MessageBox.Show("Сначала выбери период");
+                MessageBox.Show(SelectPeriodFirstMessage);
                 return;
             }
 
@@ -998,53 +1029,110 @@ namespace slider
 
             foreach (var file in files)
             {
-                string extension = System.IO.Path.GetExtension(file).ToLower();
+                string extension = Path.GetExtension(file).ToLower();
 
-                if (extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".bmp")
+                if (SupportedImageExtensions.Contains(extension) || SupportedVideoExtensions.Contains(extension))
                 {
-                    selectedPeriod.Slides.Add(new SlideItem
-                    {
-                        FileName = System.IO.Path.GetFileName(file),
-                        ImagePath = file,
-                        DurationSeconds = 5,
-                        TransitionEffect = "Затухание"
-                    });
+                    AddMediaToSelectedPeriod(file);
                 }
             }
 
-            RefreshImagesGrid();
-            UpdateStatus("Изображения добавлены через Drag & Drop");
+            RefreshMediaGrid();
+            UpdateStatus("Медиа добавлены через Drag & Drop");
             ScheduleAutoSave();
         }
 
-        // =========================
-        // НАСТРОЙКИ ИЗОБРАЖЕНИЯ
-        // =========================
 
+
+        private void AddMediaToSelectedPeriod(string file)
+        {
+            if (selectedPeriod is not { } period)
+                return;
+
+            string ext = Path.GetExtension(file).ToLower();
+
+            MediaType type;
+
+            if (SupportedImageExtensions.Contains(ext))
+                type = MediaType.Image;
+            else if (SupportedVideoExtensions.Contains(ext))
+                type = MediaType.Video;
+            else
+                return;
+
+            period.Slides.Add(new SlideItem
+            {
+                FileName = Path.GetFileName(file),
+                Path = file,
+                Type = type,
+                DurationSeconds = type == MediaType.Video ? 0 : DefaultSlideDurationSeconds,
+                TransitionEffect = DefaultTransitionEffect,
+                PlayFullVideo = type == MediaType.Video,
+                StartSeconds = 0,
+                EndSeconds = 0
+            });
+        }
+
+
+        private static readonly HashSet<string> SupportedImageExtensions = new()
+{
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".bmp"
+};
+        private static readonly HashSet<string> SupportedVideoExtensions = new()
+{
+    ".mp4",
+    ".avi",
+    ".mov",
+    ".mkv",
+    ".wmv"
+};
         private void ApplyImageSettingsButton_Click(object sender, RoutedEventArgs e)
         {
             if (ImagesDataGrid.SelectedItem is not SlideItem selectedSlide)
             {
-                MessageBox.Show("Сначала выбери изображение");
+                MessageBox.Show(SelectImageFirstMessage);
                 return;
             }
 
-            if (!int.TryParse(DurationTextBox.Text, out int duration) || duration <= 0)
+            if (selectedSlide.Type == MediaType.Image)
             {
-                MessageBox.Show("Введите корректную длительность в секундах");
-                return;
-            }
+                if (!int.TryParse(DurationTextBox.Text, out int imageDuration) || imageDuration <= 0)
+                {
+                    MessageBox.Show("Введите корректную длительность в секундах");
+                    return;
+                }
 
-            selectedSlide.DurationSeconds = duration;
+                selectedSlide.DurationSeconds = imageDuration;
+            }
+            else if (selectedSlide.Type == MediaType.Video)
+            {
+                if (selectedSlide.PlayFullVideo)
+                {
+                    selectedSlide.DurationSeconds = 0;
+                }
+                else
+                {
+                    if (!int.TryParse(DurationTextBox.Text, out int videoDuration) || videoDuration < 0)
+                    {
+                        MessageBox.Show("Введите корректную длительность в секундах");
+                        return;
+                    }
+
+                    selectedSlide.DurationSeconds = videoDuration;
+                }
+            }
 
             if (TransitionEffectComboBox.SelectedItem is ComboBoxItem comboItem)
             {
-                selectedSlide.TransitionEffect = comboItem.Content?.ToString() ?? "Затухание";
+                selectedSlide.TransitionEffect = comboItem.Content?.ToString() ?? DefaultTransitionEffect;
             }
 
-            RefreshImagesGrid();
+            RefreshMediaGrid();
             ImagesDataGrid.SelectedItem = selectedSlide;
-            UpdateStatus("Настройки изображения применены");
+            UpdateStatus("Настройки элемента применены");
             ScheduleAutoSave();
         }
 
@@ -1064,14 +1152,16 @@ namespace slider
             if (dialog.ShowDialog() == true)
             {
                 PlaylistPathTextBox.Text = dialog.FileName;
-                currentPlaylistFilePath = dialog.FileName;
                 UpdateStatus("Путь плейлиста выбран");
             }
         }
 
-        // =========================
-        // АВТОСОХРАНЕНИЕ
-        // =========================
+        private void RefreshPeriodUi()
+        {
+            RefreshPeriodsList();
+            RefreshPeriodEditor();
+            RefreshMediaGrid();
+        }
 
         private void AutoSaveCheckBox_Checked(object sender, RoutedEventArgs e)
         {
@@ -1105,7 +1195,7 @@ namespace slider
 
         private void RefreshPeriodEditor()
         {
-            if (selectedPeriod == null)
+            if (selectedPeriod is not { } period)
             {
                 if (PeriodNameTextBox != null)
                     PeriodNameTextBox.Text = "";
@@ -1135,36 +1225,36 @@ namespace slider
             }
 
             if (PeriodNameTextBox != null)
-                PeriodNameTextBox.Text = selectedPeriod.Name;
+                PeriodNameTextBox.Text = period.Name;
 
             if (StartDatePicker != null)
-                StartDatePicker.SelectedDate = selectedPeriod.StartDateTime.Date;
+                StartDatePicker.SelectedDate = period.StartDateTime.Date;
 
             if (EndDatePicker != null)
-                EndDatePicker.SelectedDate = selectedPeriod.EndDateTime.Date;
+                EndDatePicker.SelectedDate = period.EndDateTime.Date;
 
             if (StartHourTextBox != null)
-                StartHourTextBox.Text = selectedPeriod.StartDateTime.Hour.ToString("00");
+                StartHourTextBox.Text = period.StartDateTime.Hour.ToString("00");
 
             if (StartMinuteTextBox != null)
-                StartMinuteTextBox.Text = selectedPeriod.StartDateTime.Minute.ToString("00");
+                StartMinuteTextBox.Text = period.StartDateTime.Minute.ToString("00");
 
             if (EndHourTextBox != null)
-                EndHourTextBox.Text = selectedPeriod.EndDateTime.Hour.ToString("00");
+                EndHourTextBox.Text = period.EndDateTime.Hour.ToString("00");
 
             if (EndMinuteTextBox != null)
-                EndMinuteTextBox.Text = selectedPeriod.EndDateTime.Minute.ToString("00");
+                EndMinuteTextBox.Text = period.EndDateTime.Minute.ToString("00");
 
             if (CurrentDayInfoTextBlock != null)
             {
                 CurrentDayInfoTextBlock.Text =
-                    $"Период: {selectedPeriod.Name}\n" +
-                    $"С: {selectedPeriod.StartDateTime:dd.MM.yyyy HH:mm}\n" +
-                    $"По: {selectedPeriod.EndDateTime:dd.MM.yyyy HH:mm}";
+                    $"Период: {period.Name}\n" +
+                    $"С: {period.StartDateTime:dd.MM.yyyy HH:mm}\n" +
+                    $"По: {period.EndDateTime:dd.MM.yyyy HH:mm}";
             }
         }
 
-        private void RefreshImagesGrid()
+        private void RefreshMediaGrid()
         {
             ImagesDataGrid.ItemsSource = null;
 
@@ -1198,6 +1288,7 @@ namespace slider
             RefreshPeriodEditor();
         }
 
+        // TODO: использовать для автостарта активного периода в слайдере
         private PlaylistPeriod? GetActivePeriod()
         {
             DateTime now = DateTime.Now;

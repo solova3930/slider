@@ -13,6 +13,19 @@
         Loaded="SliderWindow_Loaded"
         Focusable="True">
     <Grid Background="Black">
-        <Image x:Name="SlideImage" Stretch="UniformToFill"/>
+
+        <!-- Картинка -->
+        <Image x:Name="SlideImage"
+           Stretch="Uniform"
+           Visibility="Collapsed"/>
+
+        <!-- Видео -->
+        <MediaElement x:Name="SlideVideo"
+                  LoadedBehavior="Manual"
+                  UnloadedBehavior="Stop"
+                  Stretch="Uniform"
+                  Visibility="Collapsed"
+                  MediaEnded="SlideVideo_MediaEnded"/>
+
     </Grid>
 </Window>
