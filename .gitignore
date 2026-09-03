@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Local release builds
+publish-*/
+slider-v*-win-x64/
+slider-v*-win-x64.zip
