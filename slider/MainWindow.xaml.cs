@@ -124,9 +124,11 @@ namespace slider
         {
             var data = PlaylistFileService.Load(filePath);
 
-            PlaylistPathTextBox.Text = filePath;
-
             ApplyPlaylistData(data);
+
+            // Файл мог быть перемещён после предыдущего сохранения.
+            // Реальный путь, из которого он сейчас открыт, всегда имеет приоритет.
+            PlaylistPathTextBox.Text = filePath;
 
             if (saveAsLast)
                 SaveLastPlaylistPath(filePath);
@@ -1001,6 +1003,51 @@ namespace slider
             ClearSelectedImageEditor();
             UpdateStatus("Изображение удалено");
             ScheduleAutoSave();
+        }
+
+        private void Window_PreviewDragEnter(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+                return;
+
+            FileDropOverlay.Visibility = Visibility.Visible;
+
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+
+
+        private void Window_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+                return;
+
+            FileDropOverlay.Visibility = Visibility.Visible;
+
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+
+
+        private void Window_PreviewDragLeave(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+                return;
+
+            FileDropOverlay.Visibility = Visibility.Collapsed;
+        }
+
+
+        private void Window_PreviewDrop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+                return;
+
+            FileDropOverlay.Visibility = Visibility.Collapsed;
+
+            DropZone_Drop(sender, e);
+
+            e.Handled = true;
         }
 
         private void DropZone_DragEnter(object sender, DragEventArgs e)

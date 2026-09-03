@@ -13,7 +13,12 @@
         MinHeight="760"
         MinWidth="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#1e1a1a">
+        Background="#1e1a1a"
+        AllowDrop="True"
+        PreviewDragEnter="Window_PreviewDragEnter"
+        PreviewDragOver="Window_PreviewDragOver"
+        PreviewDragLeave="Window_PreviewDragLeave"
+        PreviewDrop="Window_PreviewDrop">
 
     <Window.Resources>
         <SolidColorBrush x:Key="BtnPrimaryBrush" Color="#5A5A5A"/>
@@ -1787,6 +1792,53 @@
 
                                     </DataGrid.Columns>
                                 </DataGrid>
+                                <!-- Красивый overlay при перетаскивании файлов -->
+                                <Border x:Name="FileDropOverlay"
+        Visibility="Collapsed"
+        Background="#E6151515"
+        BorderBrush="#8A8A8A"
+        BorderThickness="2"
+        CornerRadius="10"
+        IsHitTestVisible="False"
+        Panel.ZIndex="100">
+
+                                    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+
+                                        <Border Width="72"
+                Height="72"
+                CornerRadius="36"
+                Background="#353535"
+                BorderBrush="#707070"
+                BorderThickness="1"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,18">
+
+                                            <TextBlock Text="+"
+                       Foreground="#EAEAEA"
+                       FontSize="46"
+                       FontWeight="Light"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="0,-7,0,0"/>
+                                        </Border>
+
+                                        <TextBlock Text="ПОМЕСТИ МЕНЯ СЮДА"
+                   Foreground="#F0F0F0"
+                   FontSize="24"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"/>
+
+                                        <TextBlock Text="Фото и видео будут добавлены в текущий период"
+                   Foreground="#909090"
+                   FontSize="13"
+                   Margin="0,8,0,0"
+                   HorizontalAlignment="Center"/>
+
+                                    </StackPanel>
+                                </Border>
+
+
                             </Grid>
                         </Grid>
                     </Border>
