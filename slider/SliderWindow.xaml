@@ -12,20 +12,40 @@
         MouseDoubleClick="Window_MouseDoubleClick"
         Loaded="SliderWindow_Loaded"
         Focusable="True">
+
     <Grid Background="Black">
 
-        <!-- Картинка -->
-        <Image x:Name="SlideImage"
-           Stretch="Uniform"
-           Visibility="Collapsed"/>
+        <!-- Слой A -->
+        <Grid x:Name="LayerA"
+              Opacity="0">
 
-        <!-- Видео -->
-        <MediaElement x:Name="SlideVideo"
-                  LoadedBehavior="Manual"
-                  UnloadedBehavior="Stop"
-                  Stretch="Uniform"
-                  Visibility="Collapsed"
-                  MediaEnded="SlideVideo_MediaEnded"/>
+            <Image x:Name="SlideImageA"
+                   Stretch="Uniform"
+                   Visibility="Collapsed"/>
+
+            <MediaElement x:Name="SlideVideoA"
+                          LoadedBehavior="Manual"
+                          UnloadedBehavior="Stop"
+                          Stretch="Uniform"
+                          Visibility="Collapsed"
+                          MediaEnded="SlideVideo_MediaEnded"/>
+        </Grid>
+
+        <!-- Слой B -->
+        <Grid x:Name="LayerB"
+              Opacity="0">
+
+            <Image x:Name="SlideImageB"
+                   Stretch="Uniform"
+                   Visibility="Collapsed"/>
+
+            <MediaElement x:Name="SlideVideoB"
+                          LoadedBehavior="Manual"
+                          UnloadedBehavior="Stop"
+                          Stretch="Uniform"
+                          Visibility="Collapsed"
+                          MediaEnded="SlideVideo_MediaEnded"/>
+        </Grid>
 
     </Grid>
 </Window>

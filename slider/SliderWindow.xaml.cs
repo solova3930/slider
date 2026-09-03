@@ -27,6 +27,13 @@ namespace slider
         private readonly string playlistFilePath = "";
         private DateTime lastFileWriteTime = DateTime.MinValue;
         private readonly Dictionary<string, BitmapImage> imageCache = new();
+        private bool activeLayerIsA = true;
+        private bool hasActiveLayer = false;
+        private bool isTransitioning = false;
+
+        private int mediaRequestId = 0;
+
+        private const int CrossfadeMilliseconds = 350;
         public SliderWindow(List<PlaylistPeriod> playlistPeriods, string filePath)
         {
             InitializeComponent();
@@ -135,12 +142,9 @@ namespace slider
             {
                 currentSlides.Clear();
                 currentIndex = 0;
-                slideTimer.Stop();
-                videoTimer?.Stop();
-                SlideVideo.Stop();
-                SlideVideo.Visibility = Visibility.Collapsed;
-                SlideImage.Source = null;
-                SlideImage.Visibility = Visibility.Collapsed;
+
+                ClearAllLayers();
+
                 return;
             }
 
@@ -188,86 +192,328 @@ namespace slider
         {
             if (currentSlides.Count == 0)
             {
-                slideTimer.Stop();
-                videoTimer?.Stop();
-                SlideVideo.Stop();
-                SlideVideo.Visibility = Visibility.Collapsed;
-                SlideImage.Source = null;
-                SlideImage.Visibility = Visibility.Collapsed;
+                ClearAllLayers();
                 return;
             }
 
+            slideTimer.Stop();
+            videoTimer?.Stop();
+
             SlideItem currentSlide = currentSlides[currentIndex];
+
+            int requestId = ++mediaRequestId;
 
             try
             {
                 string path = currentSlide.Path;
 
-                if (!Path.IsPathRooted(path) && !string.IsNullOrWhiteSpace(playlistFilePath))
+                if (!Path.IsPathRooted(path) &&
+                    !string.IsNullOrWhiteSpace(playlistFilePath))
                 {
-                    string baseFolder = Path.GetDirectoryName(playlistFilePath) ?? "";
+                    string baseFolder =
+                        Path.GetDirectoryName(playlistFilePath) ?? "";
+
                     path = Path.Combine(baseFolder, path);
                 }
 
+                bool targetLayerIsA =
+                    !hasActiveLayer || !activeLayerIsA;
+
+                Image targetImage = GetImage(targetLayerIsA);
+                MediaElement targetVideo = GetVideo(targetLayerIsA);
+
+
+                // =========================
+                // КАРТИНКА
+                // =========================
+
                 if (currentSlide.Type == MediaType.Image)
                 {
-                    videoTimer?.Stop();
-                    SlideVideo.Stop();
-                    SlideVideo.Source = null;
-                    SlideVideo.Visibility = Visibility.Collapsed;
+                    try
+                    {
+                        targetVideo.Stop();
+                    }
+                    catch
+                    {
+                    }
+
+                    targetVideo.Source = null;
+                    targetVideo.Visibility = Visibility.Collapsed;
 
                     BitmapImage bitmap = GetCachedImage(path);
 
-                    string effect = currentSlide.TransitionEffect ?? "Затухание";
+                    targetImage.BeginAnimation(OpacityProperty, null);
+                    targetImage.Source = bitmap;
+                    targetImage.Opacity = 1;
+                    targetImage.Visibility = Visibility.Visible;
 
-                    SlideImage.Visibility = Visibility.Visible;
+                    ShowLayer(
+                        targetLayerIsA,
+                        currentSlide,
+                        () =>
+                        {
+                            if (requestId != mediaRequestId)
+                                return;
 
-                    if (effect == "Затухание")
-                    {
-                        FadeToImage(bitmap);
-                    }
-                    else
-                    {
-                        SlideImage.BeginAnimation(OpacityProperty, null);
-                        SlideImage.Source = bitmap;
-                        SlideImage.Opacity = 1;
-                    }
+                            RestartSlideTimer();
+                        });
 
-                    RestartSlideTimer();
+                    return;
                 }
-                else if (currentSlide.Type == MediaType.Video)
+
+
+                // =========================
+                // ВИДЕО
+                // =========================
+
+                targetImage.BeginAnimation(OpacityProperty, null);
+                targetImage.Source = null;
+                targetImage.Visibility = Visibility.Collapsed;
+
+                try
                 {
-                    slideTimer.Stop();
-                    videoTimer?.Stop();
-
-                    SlideImage.Source = null;
-                    SlideImage.Visibility = Visibility.Collapsed;
-
-                    SlideVideo.Stop();
-                    SlideVideo.Source = null;
-                    SlideVideo.Visibility = Visibility.Visible;
-                    SlideVideo.Source = new Uri(path, UriKind.Absolute);
-
-                    RoutedEventHandler? openedHandler = null;
-                    openedHandler = (s, e) =>
-                    {
-                        SlideVideo.MediaOpened -= openedHandler;
-
-                        if (currentSlide.StartSeconds > 0)
-                            SlideVideo.Position = TimeSpan.FromSeconds(currentSlide.StartSeconds);
-
-                        SlideVideo.Play();
-
-                        if (!currentSlide.PlayFullVideo)
-                            StartVideoTimer(currentSlide);
-                    };
-
-                    SlideVideo.MediaOpened += openedHandler;
+                    targetVideo.Stop();
                 }
+                catch
+                {
+                }
+
+                targetVideo.Source = null;
+                targetVideo.Visibility = Visibility.Visible;
+
+
+                RoutedEventHandler? openedHandler = null;
+
+                openedHandler = (s, e) =>
+                {
+                    targetVideo.MediaOpened -= openedHandler;
+
+                    // За время загрузки пользователь мог
+                    // уже переключить слайд.
+                    if (requestId != mediaRequestId)
+                    {
+                        try
+                        {
+                            targetVideo.Stop();
+                        }
+                        catch
+                        {
+                        }
+
+                        return;
+                    }
+
+                    if (currentSlide.StartSeconds > 0)
+                    {
+                        targetVideo.Position =
+                            TimeSpan.FromSeconds(currentSlide.StartSeconds);
+                    }
+
+                    targetVideo.Play();
+
+                    ShowLayer(
+                        targetLayerIsA,
+                        currentSlide,
+                        () =>
+                        {
+                            if (requestId != mediaRequestId)
+                                return;
+
+                            if (!currentSlide.PlayFullVideo)
+                            {
+                                StartVideoTimer(currentSlide);
+                            }
+                        });
+                };
+
+                targetVideo.MediaOpened += openedHandler;
+
+                targetVideo.Source =
+                    new Uri(path, UriKind.Absolute);
             }
             catch
             {
                 ShowNextSlide();
+            }
+        }
+
+
+        private Grid GetLayer(bool layerIsA)
+        {
+            return layerIsA ? LayerA : LayerB;
+        }
+
+        private Image GetImage(bool layerIsA)
+        {
+            return layerIsA ? SlideImageA : SlideImageB;
+        }
+
+        private MediaElement GetVideo(bool layerIsA)
+        {
+            return layerIsA ? SlideVideoA : SlideVideoB;
+        }
+
+        private MediaElement GetActiveVideo()
+        {
+            return GetVideo(activeLayerIsA);
+        }
+
+
+        private void ClearLayer(bool layerIsA)
+        {
+            Grid layer = GetLayer(layerIsA);
+            Image image = GetImage(layerIsA);
+            MediaElement video = GetVideo(layerIsA);
+
+            layer.BeginAnimation(OpacityProperty, null);
+            layer.Opacity = 0;
+
+            image.BeginAnimation(OpacityProperty, null);
+            image.Source = null;
+            image.Visibility = Visibility.Collapsed;
+
+            try
+            {
+                video.Stop();
+            }
+            catch
+            {
+            }
+
+            video.Source = null;
+            video.Visibility = Visibility.Collapsed;
+        }
+
+
+        private void ClearAllLayers()
+        {
+            mediaRequestId++;
+
+            slideTimer.Stop();
+            videoTimer?.Stop();
+
+            ClearLayer(true);
+            ClearLayer(false);
+
+            hasActiveLayer = false;
+            isTransitioning = false;
+        }
+
+
+        private void ActivateLayerImmediately(bool targetLayerIsA)
+        {
+            bool oldLayerIsA = !targetLayerIsA;
+
+            Grid targetLayer = GetLayer(targetLayerIsA);
+            Grid oldLayer = GetLayer(oldLayerIsA);
+
+            targetLayer.BeginAnimation(OpacityProperty, null);
+            oldLayer.BeginAnimation(OpacityProperty, null);
+
+            targetLayer.Opacity = 1;
+            oldLayer.Opacity = 0;
+
+            if (hasActiveLayer)
+                ClearLayer(oldLayerIsA);
+
+            activeLayerIsA = targetLayerIsA;
+            hasActiveLayer = true;
+            isTransitioning = false;
+        }
+
+
+        private void CrossfadeToLayer(
+            bool targetLayerIsA,
+            Action? completed = null)
+        {
+            Grid incomingLayer = GetLayer(targetLayerIsA);
+
+            if (!hasActiveLayer)
+            {
+                incomingLayer.BeginAnimation(OpacityProperty, null);
+                incomingLayer.Opacity = 1;
+
+                activeLayerIsA = targetLayerIsA;
+                hasActiveLayer = true;
+                isTransitioning = false;
+
+                completed?.Invoke();
+                return;
+            }
+
+            bool outgoingLayerIsA = activeLayerIsA;
+
+            if (outgoingLayerIsA == targetLayerIsA)
+            {
+                ActivateLayerImmediately(targetLayerIsA);
+                completed?.Invoke();
+                return;
+            }
+
+            Grid outgoingLayer = GetLayer(outgoingLayerIsA);
+
+            incomingLayer.BeginAnimation(OpacityProperty, null);
+            outgoingLayer.BeginAnimation(OpacityProperty, null);
+
+            incomingLayer.Opacity = 0;
+            outgoingLayer.Opacity = 1;
+
+            isTransitioning = true;
+
+            // Новый слой сразу считаем активным.
+            // Это важно для MediaEnded и остальных событий.
+            activeLayerIsA = targetLayerIsA;
+            hasActiveLayer = true;
+
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0.0,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(CrossfadeMilliseconds)
+            };
+
+            var fadeOut = new DoubleAnimation
+            {
+                From = 1.0,
+                To = 0.0,
+                Duration = TimeSpan.FromMilliseconds(CrossfadeMilliseconds)
+            };
+
+            fadeIn.Completed += (s, e) =>
+            {
+                incomingLayer.BeginAnimation(OpacityProperty, null);
+                outgoingLayer.BeginAnimation(OpacityProperty, null);
+
+                incomingLayer.Opacity = 1;
+                outgoingLayer.Opacity = 0;
+
+                ClearLayer(outgoingLayerIsA);
+
+                isTransitioning = false;
+
+                completed?.Invoke();
+            };
+
+            incomingLayer.BeginAnimation(OpacityProperty, fadeIn);
+            outgoingLayer.BeginAnimation(OpacityProperty, fadeOut);
+        }
+
+
+        private void ShowLayer(
+            bool targetLayerIsA,
+            SlideItem slide,
+            Action? completed = null)
+        {
+            string effect = slide.TransitionEffect ?? "Затухание";
+
+            if (effect == "Затухание" && hasActiveLayer)
+            {
+                CrossfadeToLayer(targetLayerIsA, completed);
+            }
+            else
+            {
+                ActivateLayerImmediately(targetLayerIsA);
+                completed?.Invoke();
             }
         }
 
@@ -284,7 +530,8 @@ namespace slider
         {
             videoTimer?.Stop();
 
-            double duration = slide.EndSeconds - slide.StartSeconds;
+            double duration =
+                slide.EndSeconds - slide.StartSeconds;
 
             if (duration <= 0)
                 duration = slide.DurationSeconds;
@@ -300,7 +547,7 @@ namespace slider
             videoTimer.Tick += (s, e) =>
             {
                 videoTimer?.Stop();
-                SlideVideo.Stop();
+
                 ShowNextSlide();
             };
 
@@ -308,44 +555,29 @@ namespace slider
         }
 
 
+
         private void SlideVideo_MediaEnded(object sender, RoutedEventArgs e)
         {
             if (currentSlides.Count == 0)
                 return;
 
+            if (sender is not MediaElement endedVideo)
+                return;
+
+            // Нас интересует только видео,
+            // которое сейчас находится на активном слое.
+            if (!ReferenceEquals(endedVideo, GetActiveVideo()))
+                return;
+
             SlideItem currentSlide = currentSlides[currentIndex];
 
-            if (currentSlide.Type == MediaType.Video && currentSlide.PlayFullVideo)
+            if (currentSlide.Type == MediaType.Video &&
+                currentSlide.PlayFullVideo)
             {
                 ShowNextSlide();
             }
         }
 
-        private void FadeToImage(BitmapImage bitmap)
-        {
-            DoubleAnimation fadeOut = new DoubleAnimation
-            {
-                From = 1.0,
-                To = 0.0,
-                Duration = TimeSpan.FromMilliseconds(250)
-            };
-
-            fadeOut.Completed += (s, e) =>
-            {
-                SlideImage.Source = bitmap;
-
-                DoubleAnimation fadeIn = new DoubleAnimation
-                {
-                    From = 0.0,
-                    To = 1.0,
-                    Duration = TimeSpan.FromMilliseconds(350)
-                };
-
-                SlideImage.BeginAnimation(OpacityProperty, fadeIn);
-            };
-
-            SlideImage.BeginAnimation(OpacityProperty, fadeOut);
-        }
 
         private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -363,8 +595,10 @@ namespace slider
             if (currentSlides.Count == 0)
                 return;
 
+            if (isTransitioning)
+                return;
+
             videoTimer?.Stop();
-            SlideVideo.Stop();
 
             currentIndex--;
 
@@ -373,6 +607,7 @@ namespace slider
 
             ShowCurrentSlide();
         }
+
 
         private void SlideTimer_Tick(object? sender, EventArgs e)
         {
@@ -453,8 +688,10 @@ namespace slider
             if (currentSlides.Count == 0)
                 return;
 
+            if (isTransitioning)
+                return;
+
             videoTimer?.Stop();
-            SlideVideo.Stop();
 
             currentIndex++;
 

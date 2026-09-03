@@ -817,16 +817,26 @@ namespace slider
 
             }
         }
-
         private void AddDayGroupButton_Click(object sender, RoutedEventArgs e)
         {
-            DateTime now = DateTime.Now;
+            DateTime startDate;
+
+            if (periods.Count > 0)
+            {
+                DateTime latestEndDate = periods.Max(p => p.EndDateTime);
+
+                startDate = latestEndDate.Date.AddDays(1);
+            }
+            else
+            {
+                startDate = DateTime.Today;
+            }
 
             var newPeriod = new PlaylistPeriod
             {
                 Name = $"Период {periods.Count + 1}",
-                StartDateTime = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0),
-                EndDateTime = new DateTime(now.Year, now.Month, now.Day, 23, 59, 59)
+                StartDateTime = startDate,
+                EndDateTime = startDate.AddDays(1).AddSeconds(-1)
             };
 
             periods.Add(newPeriod);
@@ -836,7 +846,6 @@ namespace slider
             UpdateStatus("Добавлен новый период");
             ScheduleAutoSave();
         }
-
         private void ImagesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
             if (e.Column.Header?.ToString() == "ЭФФЕКТ")
