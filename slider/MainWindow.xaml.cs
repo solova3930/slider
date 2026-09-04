@@ -613,7 +613,8 @@ namespace slider
 
             DateTime end = EndDatePicker.SelectedDate.Value.Date
                 .AddHours(endHour)
-                .AddMinutes(endMinute);
+                .AddMinutes(endMinute)
+                .AddSeconds(59);
 
             if (end <= start)
             {
@@ -624,6 +625,42 @@ namespace slider
             period.Name = name;
             period.StartDateTime = start;
             period.EndDateTime = end;
+
+            bool useWeekDays = UseWeekDaysCheckBox.IsChecked == true;
+            var activeDays = new List<DayOfWeek>();
+
+            if (useWeekDays)
+            {
+                if (MondayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Monday);
+                if (TuesdayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Tuesday);
+                if (WednesdayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Wednesday);
+                if (ThursdayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Thursday);
+                if (FridayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Friday);
+                if (SaturdayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Saturday);
+                if (SundayToggleButton.IsChecked == true)
+                    activeDays.Add(DayOfWeek.Sunday);
+
+                if (activeDays.Count == 0)
+                {
+                    MessageBox.Show(
+                        "Не выбран ни один день недели. Ограничение по дням недели будет отключено.",
+                        "Дни недели",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    useWeekDays = false;
+                    UseWeekDaysCheckBox.IsChecked = false;
+                }
+            }
+
+            period.UseWeekDays = useWeekDays;
+            period.ActiveDays = useWeekDays ? activeDays : new List<DayOfWeek>();
 
             RefreshPeriodsList();
             RefreshPeriodEditor();
@@ -801,6 +838,7 @@ namespace slider
 
         private void SliderWindow_Closed(object? sender, EventArgs e)
         {
+            GdigrabStreamService.Stop();
             sliderWindow = null;
         }
 
@@ -1274,6 +1312,24 @@ namespace slider
                 if (EndMinuteTextBox != null)
                     EndMinuteTextBox.Text = "00";
 
+                if (UseWeekDaysCheckBox != null)
+                    UseWeekDaysCheckBox.IsChecked = false;
+
+                if (MondayToggleButton != null)
+                    MondayToggleButton.IsChecked = false;
+                if (TuesdayToggleButton != null)
+                    TuesdayToggleButton.IsChecked = false;
+                if (WednesdayToggleButton != null)
+                    WednesdayToggleButton.IsChecked = false;
+                if (ThursdayToggleButton != null)
+                    ThursdayToggleButton.IsChecked = false;
+                if (FridayToggleButton != null)
+                    FridayToggleButton.IsChecked = false;
+                if (SaturdayToggleButton != null)
+                    SaturdayToggleButton.IsChecked = false;
+                if (SundayToggleButton != null)
+                    SundayToggleButton.IsChecked = false;
+
                 if (CurrentDayInfoTextBlock != null)
                     CurrentDayInfoTextBlock.Text = "Период: не выбран";
 
@@ -1300,6 +1356,26 @@ namespace slider
 
             if (EndMinuteTextBox != null)
                 EndMinuteTextBox.Text = period.EndDateTime.Minute.ToString("00");
+
+            if (UseWeekDaysCheckBox != null)
+                UseWeekDaysCheckBox.IsChecked = period.UseWeekDays;
+
+            var activeDays = period.ActiveDays;
+
+            if (MondayToggleButton != null)
+                MondayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Monday) == true;
+            if (TuesdayToggleButton != null)
+                TuesdayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Tuesday) == true;
+            if (WednesdayToggleButton != null)
+                WednesdayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Wednesday) == true;
+            if (ThursdayToggleButton != null)
+                ThursdayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Thursday) == true;
+            if (FridayToggleButton != null)
+                FridayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Friday) == true;
+            if (SaturdayToggleButton != null)
+                SaturdayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Saturday) == true;
+            if (SundayToggleButton != null)
+                SundayToggleButton.IsChecked = activeDays?.Contains(DayOfWeek.Sunday) == true;
 
             if (CurrentDayInfoTextBlock != null)
             {

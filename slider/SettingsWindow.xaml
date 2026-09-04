@@ -193,17 +193,6 @@
 
 
 
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="MinWidth" Value="140"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#F0F0F0"/>
-            <Setter Property="Background" Value="#556070"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -245,40 +234,17 @@
           FontSize="14"
           Margin="0,0,0,12"/>
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                            <Button x:Name="TestFfmpegStartButton"
-                                    Style="{StaticResource ActionButtonStyle}"
-            Content="ТЕSТ FFMPEG START"
-            Width="150"
-            Height="36"
-            Margin="0,0,8,0"
-            Click="TestFfmpegStartButton_Click"/>
-
-                            <Button x:Name="TestFfmpegStopButton"
-                                    Style="{StaticResource ActionButtonStyle}"
-            Content="ТЕSТ FFMPEG STOP"
-            Width="110"
-            Height="36"
-            Click="TestFfmpegStopButton_Click"/>
-                            <Button x:Name="TestRenderPlaylistButton"
-        Style="{StaticResource ActionButtonStyle}"
-        Content="РЕНДЕР ПЛЕЙЛИСТ"
-        Width="110"
-        Height="36"
-        Margin="8,0,0,0"
-        Click="TestRenderPlaylistButton_Click"/>
                             <Button x:Name="StartPlaylistStreamButton"
-        Style="{StaticResource ActionButtonStyle}"
+        Style="{StaticResource SecondaryButtonStyle}"
         Content="СТРИМ ПЛЕЙЛИСТ"
         Width="130"
-        Height="36"
-        Margin="8,0,0,0"
+        Margin="0,0,8,0"
         Click="StartPlaylistStreamButton_Click"/>
 
                             <Button x:Name="StopPlaylistStreamButton"
-        Style="{StaticResource ActionButtonStyle}"
+        Style="{StaticResource SecondaryButtonStyle}"
         Content="СТОП СТРИМ"
         Width="110"
-        Height="36"
         Margin="8,0,0,0"
         Click="StopPlaylistStreamButton_Click"/>
                         </StackPanel>
@@ -368,11 +334,11 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
 
             <Button Content="Отмена"
-                    Style="{StaticResource ActionButtonStyle}"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Click="CancelButton_Click"/>
 
             <Button Content="Сохранить"
-                    Style="{StaticResource ActionButtonStyle}"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Click="SaveButton_Click"/>
         </StackPanel>
     </Grid>

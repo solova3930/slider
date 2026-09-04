@@ -14,6 +14,7 @@ namespace slider.Services
         private Process? renderProcess;
         private bool stopRequested = false;
         public event Action? StreamingExited;
+        public int? LastStreamingExitCode { get; private set; }
         public string BuildStreamArguments(
     List<SlideItem> slides,
     StreamSettings settings)
@@ -176,6 +177,11 @@ namespace slider.Services
         }
 
 
+        /// <summary>
+        /// Deprecated legacy playlist-stream fallback. Production streaming uses
+        /// <see cref="GdigrabStreamService"/>.
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public void StartStreaming(
             List<SlideItem> slides,
             StreamSettings settings,
@@ -184,9 +190,10 @@ namespace slider.Services
             StopStreaming();
 
             stopRequested = false;
+            LastStreamingExitCode = null;
             string args = BuildStreamArguments(slides, settings);
 
-            renderProcess = new Process
+            var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -200,15 +207,28 @@ namespace slider.Services
                 EnableRaisingEvents = true
             };
 
-            renderProcess.Exited += (s, e) =>
+            process.Exited += (s, e) =>
             {
+                if (!ReferenceEquals(renderProcess, process))
+                    return;
+
+                try
+                {
+                    LastStreamingExitCode = process.ExitCode;
+                }
+                catch
+                {
+                    LastStreamingExitCode = null;
+                }
+
                 if (!stopRequested)
                     StreamingExited?.Invoke();
             };
 
-            renderProcess.Start();
-            renderProcess.BeginErrorReadLine();
-            renderProcess.BeginOutputReadLine();
+            renderProcess = process;
+            process.Start();
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
         }
 
         public void StopStreaming()
@@ -259,131 +279,6 @@ namespace slider.Services
         public bool IsStreaming()
         {
             return renderProcess != null && !renderProcess.HasExited;
-        }
-
-        public string BuildRenderArguments(
-            List<SlideItem> slides,
-            StreamSettings settings,
-            string outputPath)
-        {
-            if (slides == null || slides.Count == 0)
-                throw new InvalidOperationException("Нет слайдов для рендера.");
-
-            var validSlides = slides
-    .Where(s => File.Exists(s.Path))
-    .ToList();
-
-            if (validSlides.Count == 0)
-                throw new InvalidOperationException("Нет валидных медиа файлов.");
-
-            var inputArgs = new StringBuilder();
-            var filterParts = new List<string>();
-
-            double transitionDuration = 0.3;
-
-            for (int i = 0; i < validSlides.Count; i++)
-            {
-                var slide = validSlides[i];
-
-                int duration = slide.DurationSeconds > 0 ? slide.DurationSeconds : 5;
-
-                string inputArg = "";
-
-                if (slide.Type == MediaType.Image)
-                {
-                    inputArg = $"-loop 1 -t {duration.ToString(CultureInfo.InvariantCulture)} -i \"{slide.Path}\" ";
-                }
-                else
-                {
-                    string ssArg = slide.StartSeconds > 0
-                        ? $"-ss {slide.StartSeconds.ToString(CultureInfo.InvariantCulture)} "
-                        : "";
-
-                    string tArg = "";
-
-                    if (!slide.PlayFullVideo && slide.EndSeconds > slide.StartSeconds)
-                    {
-                        double cutDuration = slide.EndSeconds - slide.StartSeconds;
-                        tArg = $"-t {cutDuration.ToString(CultureInfo.InvariantCulture)} ";
-                    }
-
-                    inputArg = $"{ssArg}-i \"{slide.Path}\" {tArg}";
-                }
-
-                inputArgs.Append(inputArg);
-
-                filterParts.Add(
-                    $"[{i}:v]scale={settings.Width}:{settings.Height}:force_original_aspect_ratio=decrease,pad={settings.Width}:{settings.Height}:(ow-iw)/2:(oh-ih)/2,fps={settings.Fps},format=yuv420p,setpts=PTS-STARTPTS[v{i}]");
-                    }
-
-            string currentLabel = "v0";
-            double offset = Math.Max(0, GetSlideDurationSeconds(validSlides[0]) - transitionDuration);
-
-            for (int i = 1; i < validSlides.Count; i++)
-            {
-                string nextLabel = $"v{i}";
-                string outLabel = i == validSlides.Count - 1 ? "vout" : $"vx{i}";
-
-                string transition = "fade";
-
-                filterParts.Add(
-                    $"[{currentLabel}][{nextLabel}]xfade=transition={transition}:duration={transitionDuration.ToString(CultureInfo.InvariantCulture)}:offset={offset.ToString(CultureInfo.InvariantCulture)}[{outLabel}]");
-
-                currentLabel = outLabel;
-
-                if (i < validSlides.Count - 1)
-                {
-                    offset += Math.Max(0, GetSlideDurationSeconds(validSlides[i]) - transitionDuration);
-                }
-            }
-
-            string filterComplex = string.Join(";", filterParts);
-
-    string args =
-    $"-y " +
-    $"{inputArgs}" +
-    $"-filter_complex \"{filterComplex}\" " +
-    $"-map \"[{currentLabel}]\" " +
-    $"-an " +
-    $"-c:v {settings.VideoCodec} " +
-    $"-preset {settings.Preset} " +
-    $"-pix_fmt yuv420p " +
-    $"-aspect {settings.Width}:{settings.Height} " +
-    $"-b:v {settings.BitrateKbps}k " +
-    $"-movflags +faststart " +
-    $"\"{outputPath}\"";
-
-            return args;
-        }
-
-        public void RenderToFile(
-            List<SlideItem> slides,
-            StreamSettings settings,
-            string ffmpegPath,
-            string outputPath)
-        {
-            string args = BuildRenderArguments(slides, settings, outputPath);
-
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = ffmpegPath,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput =false,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-
-            string error = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
-            if (process.ExitCode != 0)
-                throw new Exception("FFmpeg render error:\n" + error);
         }
 
         private double GetSlideDurationSeconds(SlideItem slide)
