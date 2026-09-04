@@ -1349,8 +1349,7 @@ namespace slider
         {
             DateTime now = DateTime.Now;
 
-            return periods.FirstOrDefault(p =>
-                now >= p.StartDateTime && now < p.EndDateTime);
+            return periods.FirstOrDefault(p => p.IsActiveAt(now));
         }
     }
 }

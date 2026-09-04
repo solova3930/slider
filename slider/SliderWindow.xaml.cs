@@ -125,7 +125,7 @@ namespace slider
             DateTime now = DateTime.Now;
 
             return periods
-                .Where(p => now >= p.StartDateTime && now < p.EndDateTime)
+                .Where(p => p.IsActiveAt(now))
                 .OrderBy(p => p.StartDateTime)
                 .ToList();
         }

@@ -299,7 +299,7 @@ namespace slider
             DateTime now = DateTime.Now;
 
             var activePeriod = SettingsData.Periods?
-                .Where(p => now >= p.StartDateTime && now < p.EndDateTime)
+                .Where(p => p.IsActiveAt(now))
                 .OrderBy(p => p.StartDateTime)
                 .FirstOrDefault();
 

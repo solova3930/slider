@@ -45,6 +45,88 @@
         <SolidColorBrush x:Key="InputBrush" Color="#1c1c1c"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#22C55E"/>
 
+        <Style x:Key="WeekDayToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="52"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#1C1C1C"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="9">
+
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root"
+                                Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#533232"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root"
+                                Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#6A3A3A"/>
+                                    </Setter.Value>
+                                </Setter>
+
+                                <Setter Property="Foreground"
+                                Value="#FFFFFF"/>
+                            </Trigger>
+
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+
+                                <Setter TargetName="Root"
+                                Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#7A4545"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </MultiTrigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root"
+                                Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#452929"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="DeleteRowButtonStyle" TargetType="Button">
             <Setter Property="Opacity" Value="0"/>
             <Setter Property="Foreground" Value="#EAEAEA"/>
@@ -584,89 +666,216 @@
         </Style>
 
         <Style x:Key="SmallTimeTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="Width" Value="54"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#F0F0F0"/>
-            <Setter Property="Background" Value="#2B2B2B"/>
-            <Setter Property="BorderBrush" Value="#5A5A5A"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#1C1C1C"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="CaretBrush" Value="White"/>
-        </Style>
-
-        <Style x:Key="DarkDatePickerStyle" TargetType="{x:Type DatePicker}">
-            <Setter Property="Foreground" Value="#EAEAEA"/>
-            <Setter Property="Background" Value="#2B2B2B"/>
-            <Setter Property="BorderBrush" Value="#5A5A5A"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="36"/>
+            <Setter Property="CaretBrush" Value="#EAEAEA"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type DatePicker}">
-                        <Border Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        SnapsToDevicePixels="True">
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="TimeBorder"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="8">
+
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                  VerticalAlignment="Center"/>
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TimeBorder"
+                                Property="Background"
+                                Value="#242424"/>
+                            </Trigger>
+
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TimeBorder"
+                                Property="Background"
+                                Value="#292929"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkDatePickerStyle" TargetType="DatePicker">
+
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#1C1C1C"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="DatePicker">
+
+                        <Border x:Name="DateBorder"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="8">
+
                             <Grid>
+
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="42"/>
                                 </Grid.ColumnDefinitions>
+
+
+                                <!-- Дата -->
 
                                 <DatePickerTextBox x:Name="PART_TextBox"
                                            Grid.Column="0"
                                            Background="Transparent"
-                                           Foreground="{TemplateBinding Foreground}"
                                            BorderThickness="0"
-                                           FocusVisualStyle="{x:Null}"
-                                           Padding="8,0,0,0"
+                                           Foreground="#F0F0F0"
+                                           FontSize="14"
+                                           Padding="12,0"
                                            VerticalContentAlignment="Center"
-                                           HorizontalContentAlignment="Left"/>
+                                           FocusVisualStyle="{x:Null}"/>
+
+
+                                <!-- Кнопка календаря -->
 
                                 <Button x:Name="PART_Button"
-        Grid.Column="1"
-        Focusable="False"
-        Background="#2B2B2B"
-        BorderBrush="#5A5A5A"
-        BorderThickness="1,0,0,0">
+                                Grid.Column="1"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Focusable="False"
+                                Cursor="Hand">
+
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}">
-                                                <TextBlock Text=""
-                           FontFamily="Segoe MDL2 Assets"
-                           Foreground="#EAEAEA"
-                           FontSize="14"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
+
+                                            <Border x:Name="CalendarButtonBackground"
+                                            Background="Transparent"
+                                            CornerRadius="0,8,8,0">
+
+                                                <Grid Width="42"
+                                              Height="42">
+
+                                                    <!-- Иконка календаря -->
+
+                                                    <Grid Width="16"
+                                                  Height="16"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center">
+
+                                                        <Border BorderBrush="#BDBDBD"
+                                                        BorderThickness="1.4"
+                                                        CornerRadius="2"
+                                                        Margin="0,2,0,0"/>
+
+                                                        <Border Height="4"
+                                                        BorderBrush="#BDBDBD"
+                                                        BorderThickness="0,0,0,1.4"
+                                                        VerticalAlignment="Top"
+                                                        Margin="1,5,1,0"/>
+
+                                                        <Rectangle Width="1.5"
+                                                           Height="4"
+                                                           Fill="#BDBDBD"
+                                                           HorizontalAlignment="Left"
+                                                           VerticalAlignment="Top"
+                                                           Margin="4,0,0,0"/>
+
+                                                        <Rectangle Width="1.5"
+                                                           Height="4"
+                                                           Fill="#BDBDBD"
+                                                           HorizontalAlignment="Right"
+                                                           VerticalAlignment="Top"
+                                                           Margin="0,0,4,0"/>
+
+                                                    </Grid>
+
+                                                </Grid>
+
                                             </Border>
+
+                                            <ControlTemplate.Triggers>
+
+                                                <Trigger Property="IsMouseOver"
+                                                 Value="True">
+
+                                                    <Setter TargetName="CalendarButtonBackground"
+                                                    Property="Background"
+                                                    Value="#303030"/>
+
+                                                </Trigger>
+
+                                            </ControlTemplate.Triggers>
+
                                         </ControlTemplate>
                                     </Button.Template>
+
                                 </Button>
+
+
+                                <!-- Popup календаря -->
 
                                 <Popup x:Name="PART_Popup"
                                Placement="Bottom"
-                               StaysOpen="False"
-                               AllowsTransparency="True">
-                                    <Border Background="#2B2B2B"
-                                    BorderBrush="#5A5A5A"
-                                    BorderThickness="1">
+                               AllowsTransparency="True"
+                               StaysOpen="False">
+
+                                    <Border Background="#1C1C1C"
+                                    CornerRadius="8"
+                                    Padding="4">
+
                                         <Calendar x:Name="PART_Calendar"
-                                          Background="#2B2B2B"
-                                          Foreground="#EAEAEA"/>
+                                          Background="#1C1C1C"
+                                          Foreground="#EAEAEA"
+                                          BorderThickness="0"/>
+
                                     </Border>
+
                                 </Popup>
+
                             </Grid>
+
                         </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver"
+                             Value="True">
+
+                                <Setter TargetName="DateBorder"
+                                Property="Background"
+                                Value="#242424"/>
+
+                            </Trigger>
+
+                            <Trigger Property="IsKeyboardFocusWithin"
+                             Value="True">
+
+                                <Setter TargetName="DateBorder"
+                                Property="Background"
+                                Value="#292929"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
                     </ControlTemplate>
+
                 </Setter.Value>
             </Setter>
+
         </Style>
 
         <Style TargetType="{x:Type DatePickerTextBox}">
@@ -1060,45 +1269,44 @@
         <!-- Основная область -->
         <Grid Margin="18">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="330"/>
-                <ColumnDefinition Width="16"/>
+                <!-- Периоды -->
+                <ColumnDefinition Width="260"/>
+
+                <ColumnDefinition Width="8"/>
+
+                <!-- Свойства периода -->
+                <ColumnDefinition Width="290"/>
+
+                <ColumnDefinition Width="8"/>
+
+                <!-- Контент -->
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="16"/>
-                <ColumnDefinition Width="350"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Левая панель -->
+            <!-- ============================= -->
+            <!-- ПЕРИОДЫ ПОКАЗА -->
+            <!-- ============================= -->
+
             <Border Grid.Column="0"
         Background="#FF282828"
         CornerRadius="14"
-        Padding="18"
-        Margin="0">
+        Padding="16">
+
                 <Grid>
-                    
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="0"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="10"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="10"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="10"/>
-                        <RowDefinition Height="185"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
-                   Text="ПЕРИОДЫ ПОКАЗА"
+                   Text="ПЕРИОД"
                    FontSize="20"
                    FontWeight="SemiBold"
                    Foreground="#EAEAEA"
-                   HorizontalAlignment="Center"/>
-                    <Grid Background="#1c1c1c"
-                          Grid.Row="1">
-
-                    </Grid>
+                   HorizontalAlignment="Left"/>
 
                     <ListBox x:Name="DaysListBox"
                  Grid.Row="2"
@@ -1106,19 +1314,17 @@
                  BorderThickness="0"
                  SelectionChanged="DaysListBox_SelectionChanged"
                  HorizontalContentAlignment="Stretch"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                 MaxHeight="430">
-
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
 
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="Padding" Value="0"/>
-
                                 <Setter Property="Margin" Value="0,0,0,8"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                <Setter Property="Background" Value="#1c1c1c"/>
+                                <Setter Property="Background" Value="Transparent"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="ListBoxItem">
@@ -1131,11 +1337,13 @@
 
                         <ListBox.ItemTemplate>
                             <DataTemplate>
+
                                 <Border x:Name="PeriodCard"
-                Background="#2B2B2B"
-                CornerRadius="10"
-                Height="54"
-                Padding="16,0">
+                            Background="#2B2B2B"
+                            CornerRadius="10"
+                            Height="54"
+                            Padding="14,0">
+
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -1143,213 +1351,362 @@
                                         </Grid.ColumnDefinitions>
 
                                         <Grid>
+
                                             <TextBlock x:Name="PeriodNameTextBlock"
-                               Text="{Binding Name}"
-                               VerticalAlignment="Center"
-                               Foreground="#F0F0F0"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis"
-                               MouseDown="PeriodNameTextBlock_MouseDown"/>
+                                           Text="{Binding Name}"
+                                           VerticalAlignment="Center"
+                                           Foreground="#F0F0F0"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis"
+                                           MouseDown="PeriodNameTextBlock_MouseDown"/>
 
                                             <TextBox x:Name="PeriodNameEditTextBox"
-                             Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Visibility="Collapsed"
-                             VerticalContentAlignment="Center"
-                             FontSize="14"
-                             Foreground="#F0F0F0"
-                             Background="#3A3A3A"
-                             BorderBrush="#5A5A5A"
-                             BorderThickness="1"
-                             Padding="6,0"
-                             KeyDown="PeriodNameEditTextBox_KeyDown"
-                             LostFocus="PeriodNameEditTextBox_LostFocus"/>
+                                         Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="Collapsed"
+                                         VerticalContentAlignment="Center"
+                                         FontSize="14"
+                                         Foreground="#F0F0F0"
+                                         Background="#3A3A3A"
+                                         BorderBrush="#5A5A5A"
+                                         BorderThickness="1"
+                                         Padding="6,0"
+                                         KeyDown="PeriodNameEditTextBox_KeyDown"
+                                         LostFocus="PeriodNameEditTextBox_LostFocus"/>
+
                                         </Grid>
 
                                         <Button x:Name="PeriodMenuButton"
-                        Grid.Column="1"
-                        Content="..."
-                        Visibility="Collapsed"
-                        Style="{StaticResource PeriodMenuDotsStyle}"
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Click="PeriodMenuButton_Click">
+                                    Grid.Column="1"
+                                    Content="..."
+                                    Visibility="Collapsed"
+                                    Style="{StaticResource PeriodMenuDotsStyle}"
+                                    FontSize="18"
+                                    FontWeight="Bold"
+                                    Click="PeriodMenuButton_Click">
+
                                             <Button.ContextMenu>
                                                 <ContextMenu>
+
                                                     <MenuItem Header="Изменить"
-                                      Click="EditPeriod_Click"/>
+                                                  Click="EditPeriod_Click"/>
+
                                                     <MenuItem Header="Удалить"
-                                      Click="DeletePeriod_Click"/>
+                                                  Click="DeletePeriod_Click"/>
+
                                                 </ContextMenu>
                                             </Button.ContextMenu>
+
                                         </Button>
+
                                     </Grid>
                                 </Border>
 
                                 <DataTemplate.Triggers>
-                                    <!-- Hover -->
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
-                                        <Setter TargetName="PeriodCard" Property="Background" Value="#444444"/>
-                                        <Setter TargetName="PeriodMenuButton" Property="Visibility" Value="Visible"/>
+
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}"
+                                     Value="True">
+
+                                        <Setter TargetName="PeriodCard"
+                                    Property="Background"
+                                    Value="#444444"/>
+
+                                        <Setter TargetName="PeriodMenuButton"
+                                    Property="Visibility"
+                                    Value="Visible"/>
+
                                     </DataTrigger>
 
-                                    <!-- Selected -->
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
-                                        <Setter TargetName="PeriodCard" Property="Background" Value="#5A5A5A"/>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
+                                     Value="True">
+
+                                        <Setter TargetName="PeriodCard"
+                                    Property="Background"
+                                    Value="#5A5A5A"/>
+
                                     </DataTrigger>
 
-                                    <!-- Selected + Hover -->
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True"/>
-                                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True"/>
+
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
+                                           Value="True"/>
+
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}"
+                                           Value="True"/>
+
                                         </MultiDataTrigger.Conditions>
-                                        <Setter TargetName="PeriodCard" Property="Background" Value="#666666"/>
-                                        <Setter TargetName="PeriodMenuButton" Property="Visibility" Value="Visible"/>
+
+                                        <Setter TargetName="PeriodCard"
+                                    Property="Background"
+                                    Value="#666666"/>
+
+                                        <Setter TargetName="PeriodMenuButton"
+                                    Property="Visibility"
+                                    Value="Visible"/>
+
                                     </MultiDataTrigger>
+
                                 </DataTemplate.Triggers>
 
                             </DataTemplate>
                         </ListBox.ItemTemplate>
+
                     </ListBox>
 
                     <Button x:Name="AddDayGroupButton"
-        Grid.Row="4"
-        Content="+"
-        Style="{StaticResource SecondaryButtonStyle}"
-        Height="56"
-        FontSize="28"
-        FontWeight="Light"
-        Margin="0"
-        Click="AddDayGroupButton_Click"/>
-                    
-                    <TextBlock Grid.Row="8"
-                   Text="СВОЙСТВА"
-                   FontSize="20"
-                   FontWeight="SemiBold"
-                   Foreground="#EAEAEA"
-                   HorizontalAlignment="Center"/>
+                Grid.Row="4"
+                Content="+"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Height="56"
+                FontSize="28"
+                FontWeight="Light"
+                Margin="0"
+                Click="AddDayGroupButton_Click"/>
 
-                    <StackPanel Grid.Row="10">
-
-                        <Grid Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="28"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="54"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="54"/>
-                            </Grid.ColumnDefinitions>
-
-
-                            <StackPanel Grid.ColumnSpan="3">
-                                <TextBlock Text="НАЧАЛО"
-                               Foreground="#DADADA"
-                               FontSize="11"
-                               HorizontalAlignment="Center"/>
-                                <DatePicker x:Name="StartDatePicker"
-                                SelectedDateFormat="Short"
-                                FocusVisualStyle="{x:Null}"
-                                Style="{StaticResource DarkDatePickerStyle}" Width="165"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="4">
-                                <TextBlock Text="Ч"
-                               Foreground="#DADADA"
-                               FontSize="11"
-                               HorizontalAlignment="Center"/>
-                                <TextBox x:Name="StartHourTextBox"
-                             Style="{StaticResource SmallTimeTextBoxStyle}"
-                                    Text="00"
-                                    PreviewTextInput="TimeTextBox_PreviewTextInput"
-                                    TextChanged="TimeTextBox_TextChanged"
-                                    MouseWheel="Hour_MouseWheel"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="6">
-                                <TextBlock Text="М"
-                               Foreground="#DADADA"
-                               FontSize="11"
-                               HorizontalAlignment="Center"/>
-                                <TextBox x:Name="StartMinuteTextBox"
-                                Text="00"
-                                Style="{StaticResource SmallTimeTextBoxStyle}"
-                                PreviewTextInput="TimeTextBox_PreviewTextInput"
-                                TextChanged="TimeTextBox_TextChanged"
-                                MouseWheel="Minute_MouseWheel"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="28"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="54"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="54"/>
-                            </Grid.ColumnDefinitions>
-
-
-                            <StackPanel Grid.ColumnSpan="3">
-                                <TextBlock Text="ОКОНЧАНИЕ"
-                               Foreground="#DADADA"
-                               FontSize="11"
-                               HorizontalAlignment="Center"/>
-                                <DatePicker x:Name="EndDatePicker"
-                                SelectedDateFormat="Short"
-                                FocusVisualStyle="{x:Null}"
-                                Style="{StaticResource DarkDatePickerStyle}" Width="165"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="4">
-                                <TextBlock Text="Ч"
-                               Foreground="#DADADA"
-                               FontSize="11"
-                               HorizontalAlignment="Center"/>
-                                <TextBox x:Name="EndHourTextBox"
-                             Style="{StaticResource SmallTimeTextBoxStyle}"
-                             Text="00"
-                             PreviewTextInput="TimeTextBox_PreviewTextInput"
-                             TextChanged="TimeTextBox_TextChanged"
-                             MouseWheel="Hour_MouseWheel"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="6">
-                                <TextBlock Text="М"
-                               Foreground="#DADADA"
-                               FontSize="11"
-                               HorizontalAlignment="Center"/>
-                                <TextBox x:Name="EndMinuteTextBox"
-                             Style="{StaticResource SmallTimeTextBoxStyle}"
-                             Text="00"
-                             PreviewTextInput="TimeTextBox_PreviewTextInput"
-                             TextChanged="TimeTextBox_TextChanged"
-                             MouseWheel="Minute_MouseWheel"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <Button x:Name="ApplyPeriodSettingsButton"
-        Content="ПРИМЕНИТЬ"
-        Style="{StaticResource ApplyPeriodButtonStyle}"
-        Click="ApplyPeriodSettingsButton_Click" Height="36"/>
-
-                        <TextBox x:Name="PeriodNameTextBox"
-                     Visibility="Collapsed"/>
-
-                    </StackPanel>
                 </Grid>
             </Border>
 
 
-            <!-- центральный блок -->
+            <!-- ============================= -->
+            <!-- СВОЙСТВА ПЕРИОДА -->
+            <!-- ============================= -->
+
             <Border Grid.Column="2"
         Background="#FF282828"
         CornerRadius="14"
-        Padding="16" Grid.ColumnSpan="3" Margin="0,0,10,0">
+        Padding="18">
+
+                <Grid>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+
+                    <!-- Заголовок -->
+
+                    <TextBlock Grid.Row="0"
+                   Text="СВОЙСТВА"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="#EAEAEA"
+                   HorizontalAlignment="Left"/>
+
+
+                    <!-- Основные свойства -->
+
+                    <StackPanel Grid.Row="2">
+
+
+                        <!-- Название -->
+
+                        <TextBlock Text="НАЗВАНИЕ"
+                                   HorizontalAlignment="Right"
+                       Foreground="#AFAFAF"
+                       FontSize="10"
+                       Margin="0,0,0,6"/>
+
+                        <TextBox x:Name="PeriodNameTextBox"
+                     Style="{StaticResource InputTextBoxStyle}"
+                     Margin="0,0,0,20"/>
+
+
+                        <!-- Начало -->
+
+                        <TextBlock Text="НАЧАЛО"
+                                   HorizontalAlignment="Right"
+                       Foreground="#AFAFAF"
+                       FontSize="10"
+                       Margin="0,0,0,6"/>
+
+                        <Grid Margin="0,0,0,18">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="48"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="48"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <DatePicker x:Name="StartDatePicker"
+                            Grid.Column="0"
+                            SelectedDateFormat="Short"
+                            FocusVisualStyle="{x:Null}"
+                            Style="{StaticResource DarkDatePickerStyle}"/>
+
+
+                            <TextBox x:Name="StartHourTextBox"
+                         Grid.Column="2"
+                         Text="00"
+                         Style="{StaticResource SmallTimeTextBoxStyle}"
+                         PreviewTextInput="TimeTextBox_PreviewTextInput"
+                         TextChanged="TimeTextBox_TextChanged"
+                         MouseWheel="Hour_MouseWheel"/>
+
+
+                            <TextBox x:Name="StartMinuteTextBox"
+                         Grid.Column="4"
+                         Text="00"
+                         Style="{StaticResource SmallTimeTextBoxStyle}"
+                         PreviewTextInput="TimeTextBox_PreviewTextInput"
+                         TextChanged="TimeTextBox_TextChanged"
+                         MouseWheel="Minute_MouseWheel"/>
+
+                        </Grid>
+
+
+                        <!-- Окончание -->
+
+                        <TextBlock Text="ОКОНЧАНИЕ"
+                                   HorizontalAlignment="Right"
+                       Foreground="#AFAFAF"
+                       FontSize="10"
+                       Margin="0,0,0,6"/>
+
+                        <Grid Margin="0,0,0,24">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="48"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="48"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <DatePicker x:Name="EndDatePicker"
+                            Grid.Column="0"
+                            SelectedDateFormat="Short"
+                            FocusVisualStyle="{x:Null}"
+                            Style="{StaticResource DarkDatePickerStyle}"/>
+
+
+                            <TextBox x:Name="EndHourTextBox"
+                         Grid.Column="2"
+                         Text="23"
+                         Style="{StaticResource SmallTimeTextBoxStyle}"
+                         PreviewTextInput="TimeTextBox_PreviewTextInput"
+                         TextChanged="TimeTextBox_TextChanged"
+                         MouseWheel="Hour_MouseWheel"/>
+
+
+                            <TextBox x:Name="EndMinuteTextBox"
+                         Grid.Column="4"
+                         Text="59"
+                         Style="{StaticResource SmallTimeTextBoxStyle}"
+                         PreviewTextInput="TimeTextBox_PreviewTextInput"
+                         TextChanged="TimeTextBox_TextChanged"
+                         MouseWheel="Minute_MouseWheel"/>
+
+                        </Grid>
+
+
+                        <!-- Разделитель -->
+
+                        <Border Height="1"
+                    Background="#414141"
+                    Margin="0,0,0,20"/>
+
+
+                        <!-- Режим дней недели -->
+
+                        <CheckBox x:Name="UseWeekDaysCheckBox"
+                      Content="Включить показ в дни недели"
+                      Foreground="#AFAFAF"
+                      FontSize="10"
+                      FontWeight="SemiBold"
+                      Margin="0,0,0,16"/>
+
+
+                        <!-- Дни недели -->
+
+                        <Grid HorizontalAlignment="Center">
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center">
+
+                                <ToggleButton x:Name="MondayToggleButton"
+                      Content="ПН"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                                <ToggleButton x:Name="TuesdayToggleButton"
+                      Content="ВТ"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                                <ToggleButton x:Name="WednesdayToggleButton"
+                      Content="СР"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                                <ToggleButton x:Name="ThursdayToggleButton"
+                      Content="ЧТ"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center">
+
+                                <ToggleButton x:Name="FridayToggleButton"
+                      Content="ПТ"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                                <ToggleButton x:Name="SaturdayToggleButton"
+                      Content="СБ"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                                <ToggleButton x:Name="SundayToggleButton"
+                      Content="ВС"
+                      Style="{StaticResource WeekDayToggleButtonStyle}"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+
+                        <TextBlock Text="Если режим выключен, период работает непрерывно между датой начала и окончания."
+                       TextWrapping="Wrap"
+                       Foreground="#777777"
+                       FontSize="11"
+                       Margin="0,14,0,0"/>
+
+                    </StackPanel>
+
+
+                    <!-- Применить -->
+
+                    <Button x:Name="ApplyPeriodSettingsButton"
+                Grid.Row="4"
+                Content="ПРИМЕНИТЬ"
+                Style="{StaticResource ApplyPeriodButtonStyle}"
+                Height="44"
+                Margin="0"
+                Click="ApplyPeriodSettingsButton_Click"/>
+
+                </Grid>
+            </Border>
+
+
+
+            <!-- Контент периода -->
+            <Border Grid.Column="4"
+        Background="#FF282828"
+        CornerRadius="14"
+        Padding="16"
+        Margin="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1366,11 +1723,11 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="КОНТЕНТ ПЕРИОДА"
+                        <TextBlock Text="КОНТЕНТ"
                        FontSize="22"
                        FontWeight="SemiBold"
                        Foreground="#EAEAEA"
-                       HorizontalAlignment="Center"
+                       HorizontalAlignment="left"
                        VerticalAlignment="Center"/>
 
                         <TextBlock Grid.Column="1"
@@ -1380,6 +1737,9 @@
                        FontWeight="SemiBold"
                        Foreground="#EAEAEA"
                        VerticalAlignment="Center"
+                       MaxWidth="260"
+                       TextTrimming="CharacterEllipsis"
+                       TextAlignment="Right"
                        Margin="20,0,0,0"/>
                     </Grid>
 
@@ -1395,55 +1755,13 @@
 
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <!-- Шапка -->
-                            <Grid Grid.Row="0" Margin="6,0,6,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="430"/>
-                                    <ColumnDefinition Width="310"/>
-                                    <ColumnDefinition Width="210"/>
-                                    <ColumnDefinition Width="40"/>
-                                </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0"
-                       Text="ИМЯ ФАЙЛА"
-                       Foreground="#EAEAEA"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0"/>
-
-                                <TextBlock Grid.Column="1"
-                       Text="ДЛИТЕЛЬНОСТЬ (СЕК)"
-                       Foreground="#EAEAEA"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       TextAlignment="Center"/>
-
-                                <TextBlock Grid.Column="2"
-                       Text="ЭФФЕКТ ПЕРЕХОДА"
-                       Foreground="#EAEAEA"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       TextAlignment="Center"/>
-                            </Grid>
-
-                            <!-- Линия -->
-                            <Border Grid.Row="1"
-                Height="1"
-                Background="#EAEAEA"
-                Margin="0,0,0,2"/>
 
                             <!-- Таблица -->
-                            <Grid Grid.Row="2">
+                            <Grid Grid.Row="0">
 
                                 <TextBlock x:Name="EmptyDropHintTextBlock"
                        Text="ПЕРЕТАЩИ СЮДА ФОТО"
@@ -1474,7 +1792,9 @@
                                                   RowEditEnding="ImagesDataGrid_RowEditEnding"
                                                   BeginningEdit="ImagesDataGrid_BeginningEdit"
                                                   PreviewMouseLeftButtonDown="ImagesDataGrid_PreviewMouseLeftButtonDown"
-                                                  SelectionChanged="ImagesDataGrid_SelectionChanged">
+                                                  SelectionChanged="ImagesDataGrid_SelectionChanged"
+                                                  ColumnWidth="*"
+                                                  HorizontalScrollBarVisibility="Disabled">
                                     <DataGrid.Resources>
                                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#5A5A5A"/>
                                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#5A5A5A"/>
@@ -1491,9 +1811,9 @@
 
                                         <!-- Тип -->
                                         <DataGridTextColumn Header="ТИП"
-                        Binding="{Binding Type}"
-                        Width="90"
-                        IsReadOnly="True">
+                                                Binding="{Binding Type}"
+                                                Width="70"
+                                                IsReadOnly="True">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Foreground" Value="#EAEAEA"/>
@@ -1509,9 +1829,10 @@
 
                                         <!-- Имя файла -->
                                         <DataGridTextColumn Header="ИМЯ ФАЙЛА"
-                        Binding="{Binding FileName}"
-                        Width="*"
-                        IsReadOnly="True">
+                                         Binding="{Binding FileName}"
+                                         Width="*"
+                                         MinWidth="180" 
+                                         IsReadOnly="True">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Foreground" Value="#EAEAEA"/>
@@ -1526,7 +1847,8 @@
                                         </DataGridTextColumn>
 
                                         <!-- Длительность -->
-                                        <DataGridTemplateColumn Header="ДЛИТ. (СЕК)" Width="110">
+                                        <DataGridTemplateColumn Header="ДЛИТ. (СЕК)" 
+                                                                Width="105">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock FontSize="14"
@@ -1589,7 +1911,7 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Старт видео -->
-                                        <DataGridTemplateColumn Header="START" Width="80">
+                                        <DataGridTemplateColumn Header="START" Width="75">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock FontSize="14"
@@ -1647,7 +1969,7 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Конец видео -->
-                                        <DataGridTemplateColumn Header="END" Width="80">
+                                        <DataGridTemplateColumn Header="END" Width="75">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock FontSize="14"
@@ -1706,8 +2028,8 @@
 
                                         <!-- Полное воспроизведение -->
                                         <DataGridCheckBoxColumn Header="FULL"
-                        Binding="{Binding PlayFullVideo, Mode=TwoWay}"
-                        Width="70">
+                                                                Binding="{Binding PlayFullVideo, Mode=TwoWay}"
+                                                                Width="65">
                                             <DataGridCheckBoxColumn.ElementStyle>
                                                 <Style TargetType="CheckBox">
                                                     <Setter Property="VerticalAlignment" Value="Center"/>
@@ -1724,7 +2046,7 @@
                                         </DataGridCheckBoxColumn>
 
                                         <!-- Эффект -->
-                                        <DataGridTemplateColumn Header="ЭФФЕКТ" Width="170">
+                                        <DataGridTemplateColumn Header="ЭФФЕКТ" Width="130">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Grid>
@@ -1844,40 +2166,41 @@
                     </Border>
 
                     <!-- Нижние кнопки -->
-                    <UniformGrid Grid.Row="4" Columns="6" Margin="0">
+                    <UniformGrid Grid.Row="4"
+             Rows="1"
+             Columns="6">
+
                         <Button x:Name="AddImagesButton"
-                    Content="+ МЕДИА"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="0,0,10,0"
-                    Click="AddImagesButton_Click" />
-                        <Button x:Name="OpenLastPlaylistButton"
-                    Content="ПОСЛЕДНИЙ"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="0,0,10,0"
-                    Click="OpenLastPlaylistButton_Click"/>
+            Content="+ МЕДИА"
+            Style="{StaticResource SecondaryButtonStyle}"
+            Margin="0,0,6,0"
+            Click="AddImagesButton_Click"/>
 
-                        <Button x:Name="LoadPlaylistButton"
-                    Content="ЗАГРУЗИТЬ"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="0,0,10,0"
-                    Click="LoadPlaylistButton_Click"/>
+                        <Button Content="ПОСЛЕДНИЙ"
+            Style="{StaticResource SecondaryButtonStyle}"
+            Margin="0,0,6,0"
+            Click="OpenLastPlaylistButton_Click"/>
 
-                        <Button x:Name="SavePlaylistButton"
-                    Content="СОХРАНИТЬ"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="0,0,10,0"
-                    Click="SavePlaylistButton_Click"/>
+                        <Button Content="ЗАГРУЗИТЬ"
+            Style="{StaticResource SecondaryButtonStyle}"
+            Margin="0,0,6,0"
+            Click="LoadPlaylistButton_Click"/>
 
-                        <Button x:Name="OpenSettingsButton"
-                    Content="НАСТРОЙКИ"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="0,0,10,0"
-                    Click="OpenSettingsButton_Click"/>
+                        <Button Content="СОХРАНИТЬ"
+            Style="{StaticResource SecondaryButtonStyle}"
+            Margin="0,0,6,0"
+            Click="SavePlaylistButton_Click"/>
 
-                        <Button x:Name="OpenSliderButton"
-                    Content="СЛАЙДЕР"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Click="OpenSliderButton_Click"/>
+                        <Button Content="НАСТРОЙКИ"
+            Style="{StaticResource SecondaryButtonStyle}"
+            Margin="0,0,6,0"
+            Click="OpenSettingsButton_Click"/>
+
+                        <Button Content="СЛАЙДЕР"
+            Style="{StaticResource SecondaryButtonStyle}"
+            Margin="0"
+            Click="OpenSliderButton_Click"/>
+
                     </UniformGrid>
                 </Grid>
             </Border>
