@@ -68,10 +68,12 @@ namespace slider
 
             return new PlaylistData
             {
+                PlaylistName = PlaylistNameTextBox.Text,
                 PlaylistPath = PlaylistPathTextBox.Text.Trim(),
                 AutoSaveEnabled = AutoSaveCheckBox.IsChecked == true,
                 AutoSaveMinutes = autoSaveMinutes,
-                Periods = periods
+                Periods = periods,
+                StreamSettings = currentPlaylistSettings.StreamSettings
             };
         }
 
@@ -126,8 +128,6 @@ namespace slider
 
             ApplyPlaylistData(data);
 
-            // Файл мог быть перемещён после предыдущего сохранения.
-            // Реальный путь, из которого он сейчас открыт, всегда имеет приоритет.
             PlaylistPathTextBox.Text = filePath;
 
             if (saveAsLast)
@@ -324,6 +324,8 @@ namespace slider
 
             try
             {
+                currentPlaylistSettings = data;
+                PlaylistNameTextBox.Text = data.PlaylistName;
                 periods = data.Periods ?? new List<PlaylistPeriod>();
 
                 if (periods.Count == 0)
@@ -538,20 +540,14 @@ namespace slider
         {
             if ((sender as FrameworkElement)?.DataContext is PlaylistPeriod period)
             {
-                if (MessageBox.Show($"Удалить период \"{period.Name}\"?",
-                    ConfirmDeleteTitle,
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    periods.Remove(period);
-                    selectedPeriod = periods.FirstOrDefault();
+                periods.Remove(period);
+                selectedPeriod = periods.FirstOrDefault();
 
-                    RefreshPeriodUi();
-                    ClearSelectedImageEditor();
+                RefreshPeriodUi();
+                ClearSelectedImageEditor();
 
-                    UpdateStatus("Период удалён");
-                    ScheduleAutoSave();
-                }
+                UpdateStatus("Период удалён");
+                ScheduleAutoSave();
             }
         }
 
@@ -1289,6 +1285,14 @@ namespace slider
 
         private void RefreshPeriodEditor()
         {
+            if (RepeatCountTextBox != null)
+            {
+                RepeatCountTextBox.Tag = null;
+                RepeatCountTextBox.Text = (selectedPeriod?.RepeatCount ?? 1).ToString();
+                RepeatCountTextBox.Tag = selectedPeriod;
+                RepeatCountTextBox.IsEnabled = selectedPeriod != null;
+            }
+
             if (selectedPeriod is not { } period)
             {
                 if (PeriodNameTextBox != null)

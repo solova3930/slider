@@ -19,6 +19,9 @@ namespace slider
         private readonly List<PlaylistPeriod> periods;
         private List<SlideItem> currentSlides = new();
         private int currentIndex = 0;
+        private List<(int Start, int Count, int RepeatCount)> periodRanges = new();
+        private List<PlaylistPeriod> playbackPeriods = new();
+        private int currentPlayback = 1;
 
         private readonly DispatcherTimer slideTimer;
         private readonly DispatcherTimer periodCheckTimer;
@@ -55,6 +58,15 @@ namespace slider
             periodCheckTimer.Start();
 
             ReloadActiveSlides(forceReload: true);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            periodCheckTimer.Stop();
+            ClearAllLayers();
+            currentIndex = 0;
+            currentPlayback = 1;
+            base.OnClosed(e);
         }
 
         private BitmapImage GetCachedImage(string path)
@@ -138,10 +150,23 @@ namespace slider
                 .SelectMany(p => p.Slides)
                 .ToList();
 
+            var newRanges = new List<(int Start, int Count, int RepeatCount)>();
+            int start = 0;
+            foreach (var period in activePeriods)
+            {
+                if (period.Slides.Count == 0)
+                    continue;
+                newRanges.Add((start, period.Slides.Count, period.RepeatCount));
+                start += period.Slides.Count;
+            }
+
             if (newSlides.Count == 0)
             {
                 currentSlides.Clear();
                 currentIndex = 0;
+                currentPlayback = 1;
+                periodRanges.Clear();
+                playbackPeriods.Clear();
 
                 ClearAllLayers();
 
@@ -150,6 +175,8 @@ namespace slider
 
             bool slidesChanged =
                 forceReload ||
+                !playbackPeriods.SequenceEqual(activePeriods) ||
+                !periodRanges.SequenceEqual(newRanges) ||
                 currentSlides.Count != newSlides.Count ||
                 !currentSlides.Select(s => s.Path).SequenceEqual(newSlides.Select(s => s.Path)) ||
                 !currentSlides.Select(s => s.Type).SequenceEqual(newSlides.Select(s => s.Type)) ||
@@ -164,7 +191,7 @@ namespace slider
 
             string? currentPath = null;
 
-            if (currentSlides.Count > 0 &&
+            if (!forceReload && currentSlides.Count > 0 &&
                 currentIndex >= 0 &&
                 currentIndex < currentSlides.Count)
             {
@@ -172,6 +199,9 @@ namespace slider
             }
 
             currentSlides = newSlides;
+            periodRanges = newRanges;
+            playbackPeriods = activePeriods;
+            currentPlayback = 1;
 
             if (!string.IsNullOrWhiteSpace(currentPath))
             {
@@ -333,7 +363,10 @@ namespace slider
             }
             catch
             {
-                ShowNextSlide();
+                // Не вызываем показ рекурсивно: список повреждённых файлов
+                // иначе может привести к бесконечной рекурсии.
+                slideTimer.Interval = TimeSpan.FromSeconds(1);
+                slideTimer.Start();
             }
         }
 
@@ -602,6 +635,8 @@ namespace slider
 
             currentIndex--;
 
+            currentPlayback = 1;
+
             if (currentIndex < 0)
                 currentIndex = currentSlides.Count - 1;
 
@@ -693,12 +728,31 @@ namespace slider
 
             videoTimer?.Stop();
 
-            currentIndex++;
-
-            if (currentIndex >= currentSlides.Count)
-                currentIndex = 0;
+            AdvancePlayback();
 
             ShowCurrentSlide();
+        }
+
+        private void AdvancePlayback()
+        {
+            var period = periodRanges.First(p =>
+                currentIndex >= p.Start && currentIndex < p.Start + p.Count);
+
+            currentIndex++;
+            if (currentIndex == period.Start + period.Count)
+            {
+                if (currentPlayback < period.RepeatCount)
+                {
+                    currentPlayback++;
+                    currentIndex = period.Start;
+                }
+                else
+                {
+                    currentPlayback = 1;
+                    if (currentIndex >= currentSlides.Count)
+                        currentIndex = 0;
+                }
+            }
         }
 
         private void RestartSlideTimer()

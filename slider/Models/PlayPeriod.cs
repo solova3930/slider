@@ -7,6 +7,15 @@ namespace slider.Models
     {
         public string Name { get; set; } = "";
 
+        private int repeatCount = 1;
+
+        // Общее число показов периода, включая первый.
+        public int RepeatCount
+        {
+            get => repeatCount;
+            set => repeatCount = Math.Clamp(value, 1, 99);
+        }
+
         public DateTime StartDateTime { get; set; } = DateTime.Today;
 
         public DateTime EndDateTime { get; set; } = DateTime.Today.AddDays(1);

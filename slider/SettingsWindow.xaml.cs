@@ -142,7 +142,7 @@ namespace slider
             if (currentStreamSlides.Count == 0 || currentStreamSettings == null)
                 return;
 
-            bool loopEnabled = LoopPlaylistCheckBox.IsChecked.GetValueOrDefault();
+            bool loopEnabled = SettingsData.StreamSettings.LoopPlaylist;
             int? exitCode = playlistRenderService.LastStreamingExitCode;
 
             if (!scheduleChanged && !exitCode.HasValue)
@@ -379,17 +379,15 @@ namespace slider
         private void LoadDataToForm()
         {
             PlaylistNameTextBox.Text = SettingsData.PlaylistName;
-            PlaylistPathTextBox.Text = SettingsData.PlaylistPath;
+            PlaylistPathDisplay.Text = SettingsData.PlaylistPath;
             AutoSaveCheckBox.IsChecked = SettingsData.AutoSaveEnabled;
             AutoSaveMinutesTextBox.Text = SettingsData.AutoSaveMinutes.ToString();
 
-            EnableStreamingCheckBox.IsChecked = SettingsData.StreamSettings.EnableStreaming;
             OutputUrlTextBox.Text = SettingsData.StreamSettings.OutputUrl;
             BitrateTextBox.Text = SettingsData.StreamSettings.BitrateKbps.ToString();
             FpsTextBox.Text = SettingsData.StreamSettings.Fps.ToString();
             WidthTextBox.Text = SettingsData.StreamSettings.Width.ToString();
             HeightTextBox.Text = SettingsData.StreamSettings.Height.ToString();
-            LoopPlaylistCheckBox.IsChecked = SettingsData.StreamSettings.LoopPlaylist;
 
             SelectComboBoxItemByText(CodecComboBox, SettingsData.StreamSettings.Codec);
             SelectComboBoxItemByText(PresetComboBox, SettingsData.StreamSettings.Preset);
@@ -428,17 +426,14 @@ namespace slider
                 height = 1080;
 
             SettingsData.PlaylistName = PlaylistNameTextBox.Text.Trim();
-            SettingsData.PlaylistPath = PlaylistPathTextBox.Text.Trim();
             SettingsData.AutoSaveEnabled = AutoSaveCheckBox.IsChecked == true;
             SettingsData.AutoSaveMinutes = autoSaveMinutes;
 
-            SettingsData.StreamSettings.EnableStreaming = EnableStreamingCheckBox.IsChecked == true;
             SettingsData.StreamSettings.OutputUrl = OutputUrlTextBox.Text.Trim();
             SettingsData.StreamSettings.BitrateKbps = bitrate;
             SettingsData.StreamSettings.Fps = fps;
             SettingsData.StreamSettings.Width = width;
             SettingsData.StreamSettings.Height = height;
-            SettingsData.StreamSettings.LoopPlaylist = LoopPlaylistCheckBox.IsChecked == true;
 
             if (CodecComboBox.SelectedItem is ComboBoxItem codecItem)
                 SettingsData.StreamSettings.Codec = codecItem.Content?.ToString() ?? "H264";

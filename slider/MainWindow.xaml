@@ -1,4 +1,4 @@
-﻿<Window x:Class="slider.MainWindow"
+<Window x:Class="slider.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:slider"
         xmlns:models="clr-namespace:slider.Models"
         mc:Ignorable="d"
+        Style="{StaticResource DarkWindowStyle}"
         Icon="/app.ico"
         Title="Конфигуратор"
         Height="850"
@@ -13,7 +14,7 @@
         MinHeight="760"
         MinWidth="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#1e1a1a"
+        Background="{StaticResource MainWindowBackgroundBrush}"
         AllowDrop="True"
         PreviewDragEnter="Window_PreviewDragEnter"
         PreviewDragOver="Window_PreviewDragOver"
@@ -33,18 +34,6 @@
         <SolidColorBrush x:Key="BtnDangerHoverBrush" Color="#A00000"/>
         <SolidColorBrush x:Key="BtnDangerPressedBrush" Color="#700000"/>
 
-        <SolidColorBrush x:Key="WindowBrush" Color="#3c3c3c"/>
-        <SolidColorBrush x:Key="CardBrush" Color="#3c3c3c"/>
-        <SolidColorBrush x:Key="CardBrushAlt" Color="#2c2c2c"/>
-        <SolidColorBrush x:Key="BorderBrushDark" Color="#3c3c3c"/>
-        <SolidColorBrush x:Key="PrimaryBrush" Color="#4c4c4c"/>
-        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#5c5c5c"/>
-        <SolidColorBrush x:Key="SecondaryBrush" Color="#374151"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#FFCECECE"/>
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#6c6c6c"/>
-        <SolidColorBrush x:Key="InputBrush" Color="#1c1c1c"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#22C55E"/>
-
         <Style x:Key="WeekDayToggleButtonStyle" TargetType="ToggleButton">
             <Setter Property="Width" Value="52"/>
             <Setter Property="Height" Value="34"/>
@@ -54,7 +43,7 @@
             <Setter Property="Foreground" Value="#EAEAEA"/>
             <Setter Property="Background">
                 <Setter.Value>
-                    <SolidColorBrush Color="#1C1C1C"/>
+                    <SolidColorBrush Color="#3C3C3C"/>
                 </Setter.Value>
             </Setter>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -81,7 +70,7 @@
                                 <Setter TargetName="Root"
                                 Property="Background">
                                     <Setter.Value>
-                                        <SolidColorBrush Color="#533232"/>
+                                        <SolidColorBrush Color="#6a3a3a"/>
                                     </Setter.Value>
                                 </Setter>
                             </Trigger>
@@ -107,7 +96,7 @@
                                 <Setter TargetName="Root"
                                 Property="Background">
                                     <Setter.Value>
-                                        <SolidColorBrush Color="#7A4545"/>
+                                        <SolidColorBrush Color="#6a3a3a"/>
                                     </Setter.Value>
                                 </Setter>
                             </MultiTrigger>
@@ -116,7 +105,7 @@
                                 <Setter TargetName="Root"
                                 Property="Background">
                                     <Setter.Value>
-                                        <SolidColorBrush Color="#452929"/>
+                                        <SolidColorBrush Color="#6a3a3a"/>
                                     </Setter.Value>
                                 </Setter>
                             </Trigger>
@@ -211,7 +200,7 @@
                                 Background="#2B2B2B"
                                 BorderBrush="#5A5A5A"
                                 BorderThickness="1">
-                                    <ScrollViewer>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
                                         <StackPanel IsItemsHost="True"
                                             KeyboardNavigation.DirectionalNavigation="Contained"/>
                                     </ScrollViewer>
@@ -384,7 +373,7 @@
             <Setter Property="Foreground" Value="#F0F0F0"/>
             <Setter Property="Background">
                 <Setter.Value>
-                    <SolidColorBrush Color="#1c1c1c"/>
+                    <SolidColorBrush Color="#3c3c3c"/>
                 </Setter.Value>
             </Setter>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -422,7 +411,7 @@
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetName="Root"
                                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                    To="#1c1c1c"        
+                                                    To="#3c3c3c"        
                                                     Duration="0:0:0.15"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -639,30 +628,32 @@
             </Setter>
         </Style>
 
-        <Style x:Key="PeriodMenuDotsStyle" TargetType="Button">
-            <Setter Property="Width" Value="26"/>
-            <Setter Property="Height" Value="26"/>
+        <Style x:Key="PeriodDeleteButtonStyle" TargetType="Button">
+            <Setter Property="Visibility" Value="Hidden"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="Foreground" Value="#BDBDBD"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#EAEAEA"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="Transparent"
-                        BorderBrush="Transparent"
-                        BorderThickness="0"
-                        CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
+                        <Border Background="Transparent">
+                            <Path Data="M 0,0 L 8,8 M 0,8 L 8,0" Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="#D58080"/></Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="SmallTimeTextBoxStyle" TargetType="TextBox">
@@ -712,11 +703,11 @@
 
         <Style x:Key="DarkDatePickerStyle" TargetType="DatePicker">
 
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="Foreground" Value="#F0F0F0"/>
-            <Setter Property="Background" Value="#1C1C1C"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="{StaticResource CalendarInputHeight}"/>
+            <Setter Property="Foreground" Value="{StaticResource CalendarInputForegroundBrush}"/>
+            <Setter Property="Background" Value="{StaticResource CalendarInputBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="{StaticResource CalendarInputBorderThickness}"/>
+            <Setter Property="FontSize" Value="{StaticResource CalendarInputFontSize}"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
 
             <Setter Property="Template">
@@ -726,7 +717,7 @@
 
                         <Border x:Name="DateBorder"
                         Background="{TemplateBinding Background}"
-                        CornerRadius="8">
+                        CornerRadius="{StaticResource CalendarInputCornerRadius}">
 
                             <Grid>
 
@@ -742,9 +733,9 @@
                                            Grid.Column="0"
                                            Background="Transparent"
                                            BorderThickness="0"
-                                           Foreground="#F0F0F0"
-                                           FontSize="14"
-                                           Padding="12,0"
+                                           Foreground="{StaticResource CalendarInputForegroundBrush}"
+                                           FontSize="{StaticResource CalendarInputFontSize}"
+                                           Padding="{StaticResource CalendarInputPadding}"
                                            VerticalContentAlignment="Center"
                                            FocusVisualStyle="{x:Null}"/>
 
@@ -813,7 +804,7 @@
 
                                                     <Setter TargetName="CalendarButtonBackground"
                                                     Property="Background"
-                                                    Value="#303030"/>
+                                                    Value="{StaticResource CalendarInputButtonHoverBrush}"/>
 
                                                 </Trigger>
 
@@ -833,7 +824,7 @@
                                StaysOpen="False">
 
                                     <Border Background="#1C1C1C"
-                                    CornerRadius="8"
+                                    CornerRadius="{StaticResource CalendarInputCornerRadius}"
                                     Padding="4">
 
                                         <Calendar x:Name="PART_Calendar"
@@ -856,7 +847,7 @@
 
                                 <Setter TargetName="DateBorder"
                                 Property="Background"
-                                Value="#242424"/>
+                                Value="{StaticResource CalendarInputHoverBrush}"/>
 
                             </Trigger>
 
@@ -865,7 +856,7 @@
 
                                 <Setter TargetName="DateBorder"
                                 Property="Background"
-                                Value="#292929"/>
+                                Value="{StaticResource CalendarInputFocusBrush}"/>
 
                             </Trigger>
 
@@ -1009,39 +1000,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="Padding" Value="14"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-
-        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-
-        <Style x:Key="LabelStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-        </Style>
-
-        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CaretBrush" Value="White"/>
-        </Style>
         <Style x:Key="DotsButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
             <Setter Property="Width" Value="28"/>
             <Setter Property="Height" Value="28"/>
@@ -1115,7 +1073,7 @@
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="1" 
                                 MinWidth="{TemplateBinding ActualWidth}">
-                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
                                         <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
                                     </ScrollViewer>
                                 </Border>
@@ -1219,7 +1177,7 @@
             <!-- ============================= -->
 
             <Border Grid.Column="0"
-        Background="#FF282828"
+        Style="{StaticResource CardBackgroundStyle}"
         CornerRadius="14"
         Padding="16">
 
@@ -1244,6 +1202,11 @@
                  Background="Transparent"
                  BorderThickness="0"
                  SelectionChanged="DaysListBox_SelectionChanged"
+                 PreviewMouseLeftButtonDown="Periods_PreviewMouseLeftButtonDown"
+                 PreviewMouseMove="Periods_PreviewMouseMove"
+                 PreviewMouseLeftButtonUp="Periods_PreviewMouseLeftButtonUp"
+                 LostMouseCapture="Periods_LostMouseCapture"
+                 PreviewKeyDown="Periods_PreviewKeyDown"
                  HorizontalContentAlignment="Stretch"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
 
@@ -1307,28 +1270,8 @@
 
                                         </Grid>
 
-                                        <Button x:Name="PeriodMenuButton"
-                                    Grid.Column="1"
-                                    Content="..."
-                                    Visibility="Collapsed"
-                                    Style="{StaticResource PeriodMenuDotsStyle}"
-                                    FontSize="18"
-                                    FontWeight="Bold"
-                                    Click="PeriodMenuButton_Click">
-
-                                            <Button.ContextMenu>
-                                                <ContextMenu>
-
-                                                    <MenuItem Header="Изменить"
-                                                  Click="EditPeriod_Click"/>
-
-                                                    <MenuItem Header="Удалить"
-                                                  Click="DeletePeriod_Click"/>
-
-                                                </ContextMenu>
-                                            </Button.ContextMenu>
-
-                                        </Button>
+                                        <Button Grid.Column="1" Style="{StaticResource PeriodDeleteButtonStyle}"
+                                                AutomationProperties.Name="Delete period" Click="DeletePeriod_Click"/>
 
                                     </Grid>
                                 </Border>
@@ -1341,10 +1284,6 @@
                                         <Setter TargetName="PeriodCard"
                                     Property="Background"
                                     Value="#444444"/>
-
-                                        <Setter TargetName="PeriodMenuButton"
-                                    Property="Visibility"
-                                    Value="Visible"/>
 
                                     </DataTrigger>
 
@@ -1371,10 +1310,6 @@
                                         <Setter TargetName="PeriodCard"
                                     Property="Background"
                                     Value="#666666"/>
-
-                                        <Setter TargetName="PeriodMenuButton"
-                                    Property="Visibility"
-                                    Value="Visible"/>
 
                                     </MultiDataTrigger>
 
@@ -1404,7 +1339,7 @@
             <!-- ============================= -->
 
             <Border Grid.Column="2"
-        Background="#FF282828"
+        Style="{StaticResource CardBackgroundStyle}"
         CornerRadius="14"
         Padding="18">
 
@@ -1434,18 +1369,41 @@
                     <StackPanel Grid.Row="2">
 
 
-                        <!-- Название -->
+                        <!-- Название и повтор -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="48"/>
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="НАЗВАНИЕ"
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="НАЗВАНИЕ"
+                                           HorizontalAlignment="Right"
+                                           Foreground="#AFAFAF"
+                                           FontSize="10"
+                                           Margin="0,0,0,6"/>
+                                <TextBox x:Name="PeriodNameTextBox"
+                                         Style="{StaticResource InputTextBoxStyle}"
+                                         Height="42"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                        <TextBlock Text="ПОВТОР"
                                    HorizontalAlignment="Right"
-                       Foreground="#AFAFAF"
-                       FontSize="10"
-                       Margin="0,0,0,6"/>
-
-                        <TextBox x:Name="PeriodNameTextBox"
-                     Style="{StaticResource InputTextBoxStyle}"
-                     Margin="0,0,0,20"/>
-
+                                   Foreground="#AFAFAF"
+                                   FontSize="10"
+                                   Margin="0,0,0,6"/>
+                        <TextBox x:Name="RepeatCountTextBox"
+                                 Style="{StaticResource SmallTimeTextBoxStyle}"
+                                 InputMethod.IsInputMethodEnabled="False"
+                                 PreviewTextInput="RepeatCount_PreviewTextInput"
+                                 DataObject.Pasting="RepeatCount_Pasting"
+                                 TextChanged="RepeatCount_TextChanged"
+                                 LostFocus="RepeatCount_LostFocus"
+                                 PreviewMouseWheel="RepeatCount_MouseWheel"/>
+                            </StackPanel>
+                        </Grid>
 
                         <!-- Начало -->
 
@@ -1634,7 +1592,7 @@
 
             <!-- Контент периода -->
             <Border Grid.Column="4"
-        Background="#FF282828"
+        Style="{StaticResource CardBackgroundStyle}"
         CornerRadius="14"
         Padding="16"
         Margin="0">
