@@ -1,4 +1,5 @@
 ﻿# Slider
+<img width="1734" height="1055" alt="image" src="https://github.com/user-attachments/assets/0ae8fd96-f77f-42ac-b0e2-fe857157ae1e" />
 
 Приложение для показа плейлистов из изображений и видео на Windows.
 
